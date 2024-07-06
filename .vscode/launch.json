@@ -1,0 +1,18 @@
+{ 
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "command":"npm run dev",
+            "type": "node-terminal",
+            "request": "launch",
+            "name": "Debug App",
+            // "skipFiles": [
+            //     "<node_internals>/**"
+            // ],
+            // "program": "${workspaceFolder}/src/app.ts",
+            // "outFiles": [
+            //     "${workspaceFolder}/**/*.js"
+            // ]
+        }
+    ]
+}

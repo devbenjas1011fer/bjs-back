@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantilla PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+        .content {
+            margin-top: 20px;
+        }
+        .content p {
+            margin: 10px 0;
+        }
+        .descripcion {
+            text-align: center;
+            font-size: 1.2em;
+            color: #004080;
+        }
+        .perfil {
+            text-align: center;
+            font-size: 1.5em;
+            font-family: 'Georgia', serif;
+            color: #002060;
+        }
+        .direccion-corporativo {
+            text-align: left;
+            font-size: 1.2em;
+            color: #0059b3;
+        }
+        .cliente, .direccion-cliente, .comentarios {
+            text-align: left;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #003366;
+        }
+        .table-container {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        table, th, td {
+            border: 1px solid #004080;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+        }
+        th {
+            background-color: #004080;
+            color: white;
+        }
+        td {
+            color: #003366;
+        }
+        th.cant, td.cant {
+            width: 10%;
+        }
+        th.precioU, td.precioU {
+            width: 15%;
+        }
+        th.importe, td.importe {
+            width: 15%;
+        }
+        th.descripcion, td.descripcion {
+            width: 60%;
+        }
+        .totales {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .totales p {
+            margin: 5px 0;
+            font-size: 1.2em;
+            color: #004080;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <p class="descripcion"><strong> </strong> Venta e Instalacion de Material para <br> Construcciones y Remodelaciones</p>
+        <p class="perfil"><strong> </strong> {{perfil}}</p>
+        <p class="cliente"><strong>Servicio: </strong> {{servicio}}</p>
+        <p class="cliente"><strong>Cliente: </strong> {{cliente}}</p>
+        <p class="direccion-cliente"><strong>Dirección: </strong> {{direccion_cliente}}</p>
+        <p class="descripcion"><strong> </strong> {{descripcion}}</p>
+    </div>
+
+    <div class="table-container">
+        <!-- Tabla de Materiales -->
+        <table>
+            <thead>
+                <tr>
+                    <th class="cant">Cant.</th>
+                    <th class="descripcion">Descripción</th>
+                    <th class="precioU">PrecioU.</th>
+                    <th class="importe">Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{materials}}
+            </tbody>
+        </table>
+
+        <div class="totales">
+            <!-- Subtotal y Total -->
+            <p><strong>Total Descriptivo </strong> {{totalDescriptivo}}</p>
+            <br>
+            <p><strong>Tarifa de servicio 7%: </strong> {{tarifa}}</p>
+            <p><strong>Subtotal: </strong> {{subtotal}}</p>
+            <p><strong>IVA: </strong> {{iva}}</p>
+            <p><strong>Total Más IVA: </strong> {{totalIva}}</p>
+            <p><strong>Total: </strong> {{total}}</p>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="table-container">
+        <!-- Tabla de Comentarios -->
+        <table>
+            <thead>
+                <tr>
+                    <th>To</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{comments}}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

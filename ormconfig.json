@@ -1,0 +1,12 @@
+{
+    "type": "mysql",
+    "host": "localhost",
+    "port": 3306,
+    "username": "BJS_TEST",
+    "password": "2024test",
+    "database": "BS_TS",
+    "synchronize": true,
+    "logging": false,
+    "entities": ["src/entity/**/*.ts"],
+    "driver": "mysql2" 
+}
