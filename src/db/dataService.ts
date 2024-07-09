@@ -23,11 +23,16 @@ export const AppDataSource = new DataSource({
     port: 1522,
     username: "C##TST_BS",
     password: "4rt1cul05",
+    schema:"C##TST_BS",
+    logging:true,
+    sid:"ORCL",
+    // namingStrategy: new OracleNamingStrategy()
     connectString: `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`,
     database: "C##TST_BS",
+    poolSize:undefined,
     // entities: [ACCESO, ROL, SERVICIOS, SERVICIOS_CS, PROVEEDOR, CLIENTE, DIRECTORIO_CLIENTES, REFERENTES,  PROYECTO, COTIZACION, TIPO_PROCUTO_CSP, PRODUCTO_CSP, PRODUCTO_COTIZACION  ],
     entities: [ ROL, PERFIL, USER,  RECIDENTE,  SERVICIOS, SERVICIOS_PERFIL, PROVEEDOR, CLIENTE,PROYECTO, COTIZACION, TIPO_PRODUCTO, PRODUCTO_PERFIL, PRODUCTO_COTIZACION],
     synchronize: true,
-    logging: false
+    useUTC:true, 
 });
 
