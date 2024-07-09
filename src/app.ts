@@ -23,10 +23,11 @@ import { AppDataSource } from "./db/dataService";
 import { authenticateToken } from "./middleware/session";
 import { authenticateJwt } from "./utils/jwt";
 
+import path from 'path';
 import * as dotenv from 'dotenv';
 
-import path from 'path';
- 
+dotenv.config();
+
 const app = express(); 
 
 AppDataSource.initialize().then(() => {
