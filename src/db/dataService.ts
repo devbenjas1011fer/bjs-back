@@ -19,8 +19,8 @@ dotenv.config();
 
 export const AppDataSource = new DataSource({
     type: "oracle",
-    host: "127.0.0.1",
-    port: 3306,
+    host: "localhost",
+    port: 1522,
     username: "C##TST_BS",
     password: "4rt1cul05",
     connectString: `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`,
