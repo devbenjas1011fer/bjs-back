@@ -15,14 +15,15 @@ import PRODUCTO_PERFIL from "./entity/producto_perfil.entity";
 import PROVEEDOR from "./entity/suppliers.entity";
 
 export const AppDataSource = new DataSource({
-    type: "mysql",
+    type: "oracle",
     host: "127.0.0.1",
     port: 3306,
     username: "root",
     password: "ctr5i5t3m42024",
+    connectString:`${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`,
     database: "BS_TST",
     // entities: [ACCESO, ROL, SERVICIOS, SERVICIOS_CS, PROVEEDOR, CLIENTE, DIRECTORIO_CLIENTES, REFERENTES,  PROYECTO, COTIZACION, TIPO_PROCUTO_CSP, PRODUCTO_CSP, PRODUCTO_COTIZACION  ],
     entities: [ ROL, PERFIL, USER,  RECIDENTE,  SERVICIOS, SERVICIOS_PERFIL, PROVEEDOR, CLIENTE,PROYECTO, COTIZACION, TIPO_PRODUCTO, PRODUCTO_PERFIL, PRODUCTO_COTIZACION],
-    synchronize: false,
+    synchronize: true,
     logging: false
 });
