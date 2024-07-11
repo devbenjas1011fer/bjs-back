@@ -8,7 +8,7 @@ function cookieExtractor(req: Request) {
     return req.cookies["jwt"];
 }
 
-const jwtKey = process.env.JWT_KEY || ""; // Manejo del caso donde process.env.JWT_KEY sea undefined
+const jwtKey = process.env.JWT_KEY || "";
 
 const opts = {
     jwtFromRequest: cookieExtractor,

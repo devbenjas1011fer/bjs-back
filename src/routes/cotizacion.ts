@@ -200,8 +200,7 @@ router.post('/generate-pdf/:id', async (req: Request, res: Response) => {
             where: { id: req.user?.perfil },
             relations: { usuario: true },
         });
-
-        // Asumimos que `cotizacion?.comment` es una cadena JSON
+ 
         const commentsJson = cotizacion?.comment || '[]';
         const comments: Comment[] = JSON.parse(commentsJson);
 

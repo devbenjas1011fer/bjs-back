@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import USER  from "./entity/user.entity"; 
+import USER from "./entity/user.entity"; 
 import RECIDENTE from "./entity/recidente.entity";
 import CLIENTE from "./entity/cliente.entity"; 
 import TIPO_PRODUCTO from "./entity/tipo_producto_cs.entity";
@@ -19,20 +19,20 @@ dotenv.config();
 
 export const AppDataSource = new DataSource({
     type: "oracle",
-    host: "localhost",
-    port: 1522,
-    username: "C##TST_BS",
-    password: "4rt1cul05",
-    schema:"C##TST_BS",
-    logging:true,
-    sid:"ORCL",
-    // namingStrategy: new OracleNamingStrategy()
-    connectString: `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`,
-    database: "C##TST_BS",
-    poolSize:undefined,
-    // entities: [ACCESO, ROL, SERVICIOS, SERVICIOS_CS, PROVEEDOR, CLIENTE, DIRECTORIO_CLIENTES, REFERENTES,  PROYECTO, COTIZACION, TIPO_PROCUTO_CSP, PRODUCTO_CSP, PRODUCTO_COTIZACION  ],
-    entities: [ ROL, PERFIL, USER,  RECIDENTE,  SERVICIOS, SERVICIOS_PERFIL, PROVEEDOR, CLIENTE,PROYECTO, COTIZACION, TIPO_PRODUCTO, PRODUCTO_PERFIL, PRODUCTO_COTIZACION],
-    synchronize: true,
-    useUTC:true, 
+    host: process.env.DB_HOST || "localhost",
+    port: parseInt(process.env.DB_PORT!) || 1521,
+    username: process.env.DB_USERNAME || "C##TST_BS",
+    password: process.env.DB_PASSWORD || "4rt1cul05",
+    sid: process.env.DB_SID || "ORCL",
+    schema: "C##TST_BS",
+    logging: true,
+    connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${process.env.DB_HOST})(PORT=${process.env.DB_PORT}))(CONNECT_DATA=(SID=${process.env.DB_SID})))`,
+    entities: [
+        ROL, PERFIL, USER, RECIDENTE, SERVICIOS, SERVICIOS_PERFIL, 
+        PROVEEDOR, CLIENTE, PROYECTO, COTIZACION, TIPO_PRODUCTO, 
+        PRODUCTO_PERFIL, PRODUCTO_COTIZACION
+    ],
+    synchronize:false,
+    useUTC: true,
 });
-
+ 
