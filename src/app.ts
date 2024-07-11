@@ -28,8 +28,8 @@ import path from 'path';
 const app = express(); 
 
 AppDataSource.initialize().then(() => {
-    console.log("Data Source has been initialized!");}).catch((err) => {
-    console.error("Error during Data Source initialization", err);});
+    console.log("Base de datos incializada");}).catch((err) => {
+    console.error("Error al iniciar la base de datos", err);});
 
 
 app.use(logger("dev"));

@@ -4,7 +4,7 @@ import USER from '../db/entity/user.entity';
 import { comparePasswords, hashPassword } from '../utils/password'; 
 import { generateJwt } from '../utils/jwt'; 
 import PERFIL from '../db/entity/perfil.entity';
-import RECIDENTE from '../db/entity/recidente.entity';
+// import RECIDENTE from '../db/entity/recidente.entity';
 
 const router = Router();
 router.get("/", function (_req,res, _next){
@@ -20,7 +20,7 @@ router.post("/register", async function (req,res, _next){
             // idRol:req.body.idRol,
             numero:req.body.numero,
             correo:req.body.correo, 
-            password:pass,            
+            password:pass,
         }); 
         //Crear rol 
         const profile  = await AppDataSource.getRepository(PERFIL).create({
@@ -57,7 +57,7 @@ router.post("/register", async function (req,res, _next){
 router.post("/login",async function (req,res, next) {
     try{ 
         let usuario;
-        let recidente;
+        // let recidente;
         let perfil;
         usuario = await AppDataSource.getRepository(USER).findOne({
             where:{
@@ -67,12 +67,11 @@ router.post("/login",async function (req,res, next) {
         const token = generateJwt(usuario?.id!,req.body.type)
         if(req.body.type=="RECIDENTE"){
 
-            recidente = await AppDataSource.getRepository(RECIDENTE).findOne({
-                where:{
-                    id_usuario:usuario!.id,  
-                },  
-            })
-            console.log(recidente)
+            // recidente = await AppDataSource.getRepository(RECIDENTE).findOne({
+            //     where:{
+            //         id_usuario:usuario!.id,  
+            //     },  
+            // }) 
         }else{
 
                 perfil = await AppDataSource.getRepository(PERFIL).findOne({
@@ -87,13 +86,13 @@ router.post("/login",async function (req,res, next) {
         if(!pass){ 
             //QUITAR
 
-        return res.json({
-            perfil:perfil,
-            token:token,
-            nombre:usuario?.nombres+" "+usuario?.apellidos,
-            rol:perfil?.rol?.descripcion
-        })
-            // return res.status(404).send("Datos incorrectos")
+        // return res.json({
+        //     perfil:perfil,
+        //     token:token,
+        //     nombre:usuario?.nombres+" "+usuario?.apellidos,
+        //     rol:perfil?.rol?.descripcion
+        // })
+            return res.status(404).send("Datos incorrectos")
         }  
         res.cookie("jwt",token,{
             httpOnly:true,
