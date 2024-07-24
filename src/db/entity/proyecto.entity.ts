@@ -28,13 +28,13 @@ export default class PROYECTO {
     @CreateDateColumn()
     fecha_inicio?: Date;
 
-    @Column()
+    @Column({nullable:true})
     fecha_fin?: Date;
     
     @CreateDateColumn()
     alta?: Date;
 
-    @Column()
+    @Column({nullable:true})
     baja?: Date;
 
 }

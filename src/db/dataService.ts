@@ -14,6 +14,7 @@ import ROL from "./entity/rol.entity";
 import PRODUCTO_PERFIL from "./entity/producto_perfil.entity";
 import PROVEEDOR from "./entity/suppliers.entity";
 import * as dotenv from 'dotenv';
+import PRODUCTO from "./entity/producto.entity";
 
 dotenv.config();
 
@@ -28,8 +29,8 @@ export const AppDataSource = new DataSource({
     logging: true,
     connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${process.env.DB_HOST})(PORT=${process.env.DB_PORT}))(CONNECT_DATA=(SID=${process.env.DB_SID})))`,
     entities: [
-        ROL, PERFIL, USER, RECIDENTE, SERVICIOS, SERVICIOS_PERFIL, 
-        PROVEEDOR, CLIENTE, PROYECTO, COTIZACION, TIPO_PRODUCTO, 
+        ROL, USER, PERFIL, RECIDENTE, SERVICIOS, SERVICIOS_PERFIL, 
+        PROVEEDOR, CLIENTE, PROYECTO, COTIZACION, TIPO_PRODUCTO, PRODUCTO,
         PRODUCTO_PERFIL, PRODUCTO_COTIZACION
     ],
     synchronize:false,

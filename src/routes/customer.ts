@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AppDataSource } from '../db/dataService';
 import { Request, Response, NextFunction } from 'express';
 import CLIENTE from '../db/entity/cliente.entity'; 
+import RECIDENTE from '../db/entity/recidente.entity';
 const router = Router();
 router.post("/create", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
@@ -42,7 +43,22 @@ router.get("/details/", async function (req:Request,res:Response, _next:NextFunc
                 id:req.query.idCliente?.toString()
             }
         }) 
-        res.json(customer) 
+        if(customer?.id_recidente==null){
+            const newUserVinculed = await AppDataSource.getRepository(RECIDENTE).findOne({
+                where:{
+                    usuario:{
+                        numero:customer?.numero
+                    }
+                }
+            }) 
+            if(newUserVinculed!=null){
+                res.json({...customer,newUserVinculed,new:true})
+            }else{ 
+                res.json(customer) 
+            }
+        }else{ 
+            res.json(customer) 
+        }
         
     }catch(err){
         console.log(err);

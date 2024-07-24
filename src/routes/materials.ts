@@ -4,6 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 import CLIENTE from '../db/entity/cliente.entity';  
 import PRODUCTO_PERFIL from '../db/entity/producto_perfil.entity';
 import TIPO_PRODUCTO from '../db/entity/tipo_producto_cs.entity';
+import PRODUCTO from '../db/entity/producto.entity';
 const router = Router();
 router.post("/create", async function (req:Request,res:Response, _next:NextFunction){
     try{
@@ -25,10 +26,10 @@ router.post("/create", async function (req:Request,res:Response, _next:NextFunct
 })  
 router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
     try{ 
-        // const services = await AppDataSource.getRepository(PRODUCTO).find({
+        const services = await AppDataSource.getRepository(PRODUCTO).find({
              
-        // }) 
-        res.json([]) 
+        }) 
+        res.json(services) 
         
     }catch(err){
         console.log(err);

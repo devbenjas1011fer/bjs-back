@@ -6,8 +6,11 @@ export default class CLIENTE {
     @PrimaryGeneratedColumn("uuid")
     id?: string;
    
-    @Column("uuid")
+    @Column("uuid",{nullable:true})
     id_perfil?: string;
+
+    @Column("uuid", {nullable:true})
+    id_recidente?:string;
     
     @ManyToOne(()=>PERFIL)
     @JoinColumn({ name: "id_perfil" })

@@ -16,6 +16,7 @@ import constructionsProjects from "./routes/proyects-constructions";
 import recidencialProjects from "./routes/proyects-recidencial";  
 import cotizacion from "./routes/cotizacion";  
 import projects from "./routes/projects";  
+import configure from "./routes/configuratios";  
 
 import { handle404,   } from "./middleware/error-handler";
 // import { responseHandler } from "./middleware/response-handler";  
@@ -70,6 +71,7 @@ app.use("/projects",projects );
 app.use("/recidencial-projects",recidencialProjects );
 app.use("/constructions-projects", constructionsProjects);
 app.use("/cotizaciones", cotizacion);
+app.use("/configure", configure);
  
 
 

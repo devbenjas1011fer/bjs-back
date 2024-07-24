@@ -6,7 +6,7 @@ export default class RECIDENTE {
     id?: string;  
 
     @ManyToOne(()=>USER) 
-    constructora?: USER;
+    usuario?: USER;
 
     @Column()
     id_usuario?: string;
