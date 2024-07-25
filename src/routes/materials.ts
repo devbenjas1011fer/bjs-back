@@ -36,6 +36,20 @@ router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
         _next
     }
 }) 
+router.get("/tipo-material", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        const services = await AppDataSource.getRepository(PRODUCTO).findOne({
+             where:{
+                id:req.query.product_id?.toString()
+             }
+        }) 
+        res.json(services?.id_tipo_producto) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+}) 
 router.get("/my", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
         const services = await AppDataSource.getRepository(PRODUCTO_PERFIL).find({

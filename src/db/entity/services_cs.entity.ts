@@ -27,6 +27,6 @@ export default class SERVICIOS_PERFIL {
     @CreateDateColumn()
     alta?: Date;
 
-    @Column()
+    @Column({nullable:true})
     baja?: Date;
 }

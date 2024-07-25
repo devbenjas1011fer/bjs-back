@@ -33,6 +33,6 @@ export default class    PRODUCTO_PERFIL {
     @CreateDateColumn()
     alta?: Date;
 
-    @Column()
+    @Column({nullable:true})
     baja?: Date;
 }
