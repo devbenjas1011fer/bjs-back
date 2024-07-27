@@ -25,7 +25,7 @@ export default class PROYECTO {
     @Column()
     direccion?: string; 
     
-    @CreateDateColumn()
+    @CreateDateColumn({nullable:true})
     fecha_inicio?: Date;
 
     @Column({nullable:true})

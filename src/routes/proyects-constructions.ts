@@ -22,7 +22,7 @@ router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
     try{ 
         const customer = await AppDataSource.getRepository(PROYECTO).find({
             where:{
-                tipo:"CONSTRUCCION"
+                tipo:"CONSTRUCTIVO"
             },
             relations:{
                 involucrados:true

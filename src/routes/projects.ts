@@ -52,5 +52,21 @@ router.get("/details/", async function (req:Request,res:Response, _next:NextFunc
         _next
     }
 })  
-
+router.post("/create", async function (req:Request,res:Response, _next:NextFunction){
+    try{
+        const project = await AppDataSource.getRepository(PROYECTO).create({
+                id_involucrados:req.body.client,
+                nombre:req.body.nombre,
+                tipo:req.body.project.toUpperCase(),
+                descripcion:req.body.description,
+                direccion:req.body.direction
+        })
+        await AppDataSource.getRepository(PROYECTO).save(project)
+        res.json() 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+})  
 export default router;
