@@ -10,22 +10,13 @@ import fs from 'fs';
 import puppeteer from 'puppeteer';
 import { PDFDocument } from 'pdf-lib';
 import PERFIL from '../db/entity/perfil.entity';
+import { createFolio } from '../utils/folio'; 
+import FOLIO_COTIZACION from '../db/entity/folio_coTizacion.entity';
 const router = Router();
 
 router.get("/", async function (req: Request, res: Response, _next: NextFunction) {
     try {
         const cotizaciones = await AppDataSource.getRepository(COTIZACION).find({
-            select:{
-                id:true,
-                nombre:true,
-                descripcion:true,
-                id_servicio:true,
-                id_proyecto:true,
-                fecha_inicio:true,
-                estado:true,
-                alta:true,
-                baja:true
-            },
             where: {
                 proyecto: {
                     involucrados: {
@@ -35,21 +26,36 @@ router.get("/", async function (req: Request, res: Response, _next: NextFunction
             },
             relations: {
                 proyecto: {
-                    involucrados: true
+                    involucrados: { perfil: true, recidente: true }
                 },
                 materials: true,
                 servicio: { servicios: true },
             },
             order: {
-                alta: 'DESC'  
+                alta: 'DESC'
             }
         });
-        res.json(cotizaciones);
+
+        // Parsear el atributo 'comment'
+        const parsedCotizaciones = cotizaciones.map(cotizacion => {
+            // Si el comentario es nulo, lo dejamos como está, de lo contrario, intentamos parsearlo
+            if (cotizacion.comment !== null && cotizacion.comment !== undefined) {
+                try {
+                    cotizacion.comment = JSON.parse(cotizacion.comment);
+                } catch (error) {
+                    console.log(`Error parsing comment for cotizacion ID ${cotizacion.id}:`, error);
+                }
+            }
+            return cotizacion;
+        });
+
+        res.json(parsedCotizaciones);
     } catch (err) {
         console.log(err);
         _next(err);
     }
 });
+
 router.get("/:id", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
         const cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({
@@ -70,11 +76,10 @@ router.get("/:id", async function (req:Request,res:Response, _next:NextFunction)
             }
         }) 
         let cotizacionForm = {
-            nombre:cotizacion!.nombre,
+            folio:cotizacion!.folio,
             alta:cotizacion?.alta, 
             baja:cotizacion?.baja,
-            comment:JSON.parse(cotizacion!.comment!),
-            descripcion:cotizacion?.descripcion,
+            comment:JSON.parse(cotizacion!.comment!), 
             estado:cotizacion?.estado,
             fecha_inicio:cotizacion?.fecha_inicio, 
             id:cotizacion?.id, 
@@ -111,25 +116,40 @@ router.get("/projects", async function (req:Request,res:Response, _next:NextFunc
         _next
     }
 }) 
-router.post("/create-cotizacion", async function (req:Request,res:Response, _next:NextFunction){
-    try{  
+
+router.post("/create-cotizacion", async function (req: Request, res: Response, _next: NextFunction) {
+    const connection = AppDataSource;
+    const queryRunner = connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
         let cot: COTIZACION;
-        let da: COTIZACION;
-        cot = await AppDataSource.getRepository(COTIZACION).create({
-            nombre:req.body.nombre,
-            descripcion:req.body.descripcion,
-            comment:req.body.comment,
-            id_proyecto:req.body.id_proyecto,
-            id_servicio:req.body.id_servicio
-        }) 
-        da = await AppDataSource.getRepository(COTIZACION).save(cot)
-         console.log(da)
-            res.json(da!.id!)
-        }catch(err){
+        let folioC = await createFolio(req.user?.perfil!);
+        cot = queryRunner.manager.create(COTIZACION, {
+            comment: req.body.comment,
+            estado:"BORRADOR",
+            id_proyecto: req.body.id_proyecto,
+            id_servicio: req.body.id_servicio,
+            folio:folioC
+        });   
+        cot = await queryRunner.manager.save(COTIZACION, cot);
+        const newFolio = await AppDataSource.getRepository(FOLIO_COTIZACION).create({
+            id_cotizacion:cot.id,
+            id_perfil:req.user?.perfil,
+            folio:folioC,
+        })
+        await AppDataSource.getRepository(FOLIO_COTIZACION).save(newFolio); 
+        await queryRunner.manager.update(COTIZACION,{id:cot.id}, cot);
+        await queryRunner.commitTransaction();
+        res.json(cot);
+    } catch (err) {
+        await queryRunner.rollbackTransaction();
         console.log(err);
-        _next
+        _next(err);
+    } finally {
+        await queryRunner.release();
     }
-})
+});
 router.post("/add-comment", async function (req: Request, res: Response, _next: NextFunction) {
     try { 
         let cotizacion:COTIZACION|null;
@@ -206,7 +226,7 @@ router.post('/generate-pdf/:id', async (req: Request, res: Response) => {
 
         let cot = {
             servicio: cotizacion?.servicio?.descripcion,
-            descripcion: cotizacion?.descripcion,
+            folio: cotizacion?.folio,
             perfil: profile?.apodo ?? profile?.nombre,
             direccion_corporativo: "FRANCISCO JAVIER MINA No.19, COL. VISTA HERMOSA LA FUENTE, TEQUISQUIAPAN, QRO. CEL:427 122 0052",
             cliente: cotizacion?.proyecto?.involucrados?.nombre,
@@ -258,7 +278,7 @@ router.post('/generate-pdf/:id', async (req: Request, res: Response) => {
         const templatePath = path.join(__dirname, '../../www', 'template.html');
         const templateHtml = fs.readFileSync(templatePath, 'utf8');
         const htmlContent = templateHtml
-            .replace('{{descripcion}}', cot.descripcion || '')
+            // .replace('{{descripcion}}', cot.folio || '')
             .replace('{{servicio}}', cot.servicio || '')
             .replace('{{perfil}}', cot.perfil || '')
             .replace('{{direccion_corporativo}}', cot.direccion_corporativo || '')

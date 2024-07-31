@@ -1,18 +1,11 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";  
 import SERVICIOS_PERFIL from "./services_cs.entity"; 
 import PROYECTO from "./proyecto.entity"; 
-import PRODUCTO_COTIZACION from "./producto_cotizacion.entity";
-
+import PRODUCTO_COTIZACION from "./producto_cotizacion.entity"; 
 @Entity("COTIZACION")
 export default class COTIZACION {
-    @PrimaryGeneratedColumn("uuid")
-    id?: string;
-
-    @Column()
-    nombre?: string;  
-
-    @Column()
-    descripcion?: string;   
+    @PrimaryGeneratedColumn("uuid") 
+    id?: string; 
 
     @Column()
     comment?: string;    
@@ -23,6 +16,9 @@ export default class COTIZACION {
     @OneToOne(()=>SERVICIOS_PERFIL)
     @JoinColumn({ name: "id_servicio" })
     servicio?: SERVICIOS_PERFIL;  
+
+    @Column()
+    folio?: string;    
 
     @Column()
     id_proyecto?: string;    
@@ -43,6 +39,6 @@ export default class COTIZACION {
     @CreateDateColumn()
     alta?: Date;
 
-    @Column()
+    @Column({nullable:true})
     baja?: Date;
 }

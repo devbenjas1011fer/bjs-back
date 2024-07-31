@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, Entity,  JoinColumn,  ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm"; 
+import { Column, CreateDateColumn, Entity,  JoinColumn,  ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm"; 
 import USER from "./user.entity";
 import ROL from "./rol.entity";
 import SERVICIOS_PERFIL from "./services_cs.entity";
+import FOLIO_COTIZACION from "./folio_coTizacion.entity";
 
 @Entity("PERFIL")
 export default class PERFIL {
@@ -38,10 +39,16 @@ export default class PERFIL {
     foto?: string;
 
     @Column()
+    clave?: string;
+
+    @Column()
     correo?: string;
     
     @OneToMany(()=> SERVICIOS_PERFIL, (w)=>w.servicios)
     servicios?:SERVICIOS_PERFIL[];
+    
+    @OneToOne(()=> FOLIO_COTIZACION, (w)=>w.perfil)
+    folio?:FOLIO_COTIZACION[];
     
     @CreateDateColumn({nullable:false})
     alta?: Date;
