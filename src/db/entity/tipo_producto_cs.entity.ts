@@ -2,15 +2,15 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeor
 
 @Entity("TIPO_PRODUCTOS")
 export default class TIPO_PRODUCTO {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;
 
-    @Column()
+    @Column({name:"DESCRIPCION"})
     descripcion?: string;
     
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @Column()
+    @Column({name:"BAJA"})
     baja?: Date;
 }

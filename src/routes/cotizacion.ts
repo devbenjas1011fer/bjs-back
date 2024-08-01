@@ -81,7 +81,7 @@ router.get("/:id", async function (req:Request,res:Response, _next:NextFunction)
             baja:cotizacion?.baja,
             comment:JSON.parse(cotizacion!.comment!), 
             estado:cotizacion?.estado,
-            fecha_inicio:cotizacion?.fecha_inicio, 
+            // fecha_inicio:cotizacion?.fecha_inicio, 
             id:cotizacion?.id, 
             id_proyecto:cotizacion?.id_proyecto,
             id_servicio:cotizacion?.id_servicio,

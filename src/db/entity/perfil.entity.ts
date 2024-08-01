@@ -6,42 +6,42 @@ import FOLIO_COTIZACION from "./folio_coTizacion.entity";
 
 @Entity("PERFIL")
 export default class PERFIL {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;  
     
-    @Column("uuid")
+    @Column("uuid",{name:"ID_ROL"})
     id_rol?: string;  
     
     @ManyToOne(() => ROL) 
-    @JoinColumn({ name: "id_rol" }) 
+    @JoinColumn({ name: "ID_ROL" }) 
     rol?: ROL; 
     
-    @Column()
+    @Column({name:"NOMBRE"})
     nombre?: string;
 
-    @Column("uuid")
+    @Column("uuid",{name:"ID_USUARIO"})
     id_usuario?: string;
     
     @ManyToOne(() => USER) 
-    @JoinColumn({ name: "id_usuario" }) 
+    @JoinColumn({ name: "ID_USUARIO" }) 
     usuario?: USER;   
 
-    @Column()
+    @Column({name:"APODO"})
     apodo?: string;
 
-    @Column()
+    @Column({name:"RFC"})
     rfc?: string;
 
-    @Column()
+    @Column({name:"NUMERO"})
     numero?: string;
 
-    @Column()
+    @Column({name:"FOTO"})
     foto?: string;
 
-    @Column()
+    @Column({name:"CLAVE"})
     clave?: string;
 
-    @Column()
+    @Column({name:"CORREO"})
     correo?: string;
     
     @OneToMany(()=> SERVICIOS_PERFIL, (w)=>w.servicios)
@@ -50,9 +50,9 @@ export default class PERFIL {
     @OneToOne(()=> FOLIO_COTIZACION, (w)=>w.perfil)
     folio?:FOLIO_COTIZACION[];
     
-    @CreateDateColumn({nullable:false})
+    @CreateDateColumn({nullable:false, name:"ALTA"})
     alta?: Date;
 
-    @Column({nullable:true})
+    @Column({nullable:true, name:"BAJA"})
     baja?: Date;
 }

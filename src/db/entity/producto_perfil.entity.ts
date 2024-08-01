@@ -4,35 +4,35 @@ import TIPO_PRODUCTO from "./tipo_producto_cs.entity";
 
 @Entity("PRODUCTO_PERFIL")
 export default class    PRODUCTO_PERFIL {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;
 
-    @Column()
+    @Column({name:"DESCRIPCION"})
     descripcion?: string;
 
-    @Column()
+    @Column({name:"CANTIDAD"})
     cantidad?: Number;
 
-    @Column()
+    @Column({name:"PRECIO"})
     precio?: Number;  
 
     @ManyToOne(()=>PERFIL)
-    @JoinColumn({ name: "id_perfil" })
+    @JoinColumn({ name: "ID_PERFIL" })
     perfil?: PERFIL; 
     
-    @Column()
+    @Column({name:"ID_PERFIL"})
     id_perfil?: string;
 
-    @Column()
+    @Column({name:"ID_TIPO_PRODUCTO"})
     id_tipo_producto?: string;
 
     @ManyToOne(()=>TIPO_PRODUCTO)
-    @JoinColumn({ name: "id_tipo_producto" })
+    @JoinColumn({ name: "ID" })
     tipoProducto?: TIPO_PRODUCTO;  
     
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @Column({nullable:true})
+    @Column({nullable:true, name:"BAJA"})
     baja?: Date;
 }

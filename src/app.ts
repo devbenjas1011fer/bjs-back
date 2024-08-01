@@ -15,6 +15,7 @@ import suppliers from "./routes/suppliers";
 import constructionsProjects from "./routes/proyects-constructions";  
 import recidencialProjects from "./routes/proyects-recidencial";  
 import cotizacion from "./routes/cotizacion";  
+import supervision from "./routes/supervision";  
 import projects from "./routes/projects";  
 import configure from "./routes/configuratios";  
 
@@ -71,6 +72,7 @@ app.use("/projects",projects );
 app.use("/recidencial-projects",recidencialProjects );
 app.use("/constructions-projects", constructionsProjects);
 app.use("/cotizaciones", cotizacion);
+app.use("/supervision", supervision);
 app.use("/configure", configure);
  
 

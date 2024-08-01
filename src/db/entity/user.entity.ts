@@ -1,33 +1,33 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";  
 @Entity("USUARIO")
 export default class USER {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid", {name:"ID"})
     id?: string;
 
-    @Column()
+    @Column({name:"NOMBRES"})
     nombres?: string;
 
-    @Column()
+    @Column({name:"APELLIDOS"})
     apellidos?: string;
 
-    @Column()
+    @Column({name:"SEXO"})
     sexo?: string;  
 
-    @Column()
+    @Column({name:"NUMERO"})
     numero?: string;
 
-    @Column({nullable:true})
+    @Column({nullable:true, name:"FOTO"})
     foto?: string;
 
-    @Column()
+    @Column({name:"CORREO"})
     correo?: string;
 
-    @Column()
+    @Column({name:"PASSWORD"})
     password?: string; 
     
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @Column()
+    @Column({name:"BAJA"})
     baja?: Date;
 }

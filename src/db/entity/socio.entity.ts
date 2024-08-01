@@ -1,21 +1,21 @@
 import {PrimaryGeneratedColumn, Column, CreateDateColumn, Entity } from "typeorm";   
 @Entity("SOCIO")
 export default class SOCIO {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;
 
-    @Column()
+    @Column({name:"TELEFONO"})
     telefono?: string; 
 
-    @Column()
+    @Column({name:"CORREO"})
     correo?: string; 
 
-    @Column()
+    @Column({name:"RFC"})
     rfc?: string;  
  
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @CreateDateColumn()
+    @CreateDateColumn({name:"BAJA"})
     baja?: Date;
 }

@@ -3,38 +3,38 @@ import CLIENTE from "./cliente.entity";
 
 @Entity("PROYECTO")
 export default class PROYECTO {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;
 
-    @Column({nullable:true})
+    @Column({nullable:true, name:"ID_INVOLUCRADOS"})
     id_involucrados?: string;
 
     @ManyToOne(()=>CLIENTE)
-    @JoinColumn({ name: "id_involucrados" })
+    @JoinColumn({ name: "ID_INVOLUCRADOS" })
     involucrados?: CLIENTE; 
 
-    @Column()
+    @Column({name:"NOMBRE"})
     nombre?: string; 
     
-    @Column()
+    @Column({name:"TIPO"})
     tipo?: string; 
 
-    @Column()
+    @Column({name:"DESCRIPCION"})
     descripcion?: string;  
 
-    @Column()
+    @Column({name:"DIRECCION"})
     direccion?: string; 
     
-    @CreateDateColumn({nullable:true})
+    @CreateDateColumn({nullable:true, name:"FECHA_INICIO"})
     fecha_inicio?: Date;
 
-    @Column({nullable:true})
+    @Column({nullable:true, name:"FECHA_FIN"})
     fecha_fin?: Date;
     
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @Column({nullable:true})
+    @Column({nullable:true,name:"BAJA"})
     baja?: Date;
 
 }

@@ -1,41 +1,39 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm"; 
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm"; 
 import COTIZACION from "./cotizacion.entity"; 
 import PRODUCTO_PERFIL from "./producto_perfil.entity";
 
 @Entity("PRODUCTO_COTIZACION")
 export default class PRODUCTO_COTIZACION {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string; 
 
-    @Column()
+    @Column({name:"PRECIOU"})
     precioU?: Number; 
 
-    @Column()
+    @Column({name:"CANTIDAD"})
     cantidad?: Number; 
 
-    @Column()
+    @Column({name:"IMPORTE"})
     importe?: Number;
 
-    @Column()
+    @Column({name:"ID_COTIZACION"})
     id_cotizacion?: string;    
    
-    @OneToOne(()=>COTIZACION)
-    @JoinColumn({ name: "id_cotizacion" })
-    cotizacion?: COTIZACION; 
+
+    @ManyToOne(() => COTIZACION, (cotizacion) => cotizacion.materials)
+    @JoinColumn({ name: "ID_COTIZACION" })
+    cotizacion?: COTIZACION;
    
-    @Column()
+    @Column({name:"ID_PRODUCTO"})
     id_producto?: string;    
    
     @OneToOne(()=>PRODUCTO_PERFIL)
-    @JoinColumn({ name: "id_producto" })
-    producto?: PRODUCTO_PERFIL;   
-
-
-    
+    @JoinColumn({ name: "ID" })
+    producto?: PRODUCTO_PERFIL;     
  
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @Column()
+    @Column({name:"BAJA"})
     baja?: Date;
 }

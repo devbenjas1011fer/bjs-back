@@ -1,37 +1,32 @@
 import {PrimaryGeneratedColumn, Column, CreateDateColumn, Entity, ManyToOne, JoinColumn } from "typeorm";  
 import PERFIL from "./perfil.entity"; 
-import USER from "./user.entity";
 @Entity("PROVEEDOR")
 export default class PROVEEDOR {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;
    
-    @Column("uuid")
+    @Column("uuid",{name:"ID_PERFIL"})
     id_perfil?: string;
     
     @ManyToOne(()=>PERFIL)
-    @JoinColumn({ name: "id_perfil" })
+    @JoinColumn({ name: "ID_PERFIL" })
     perfil?: PERFIL; 
-   
-    @ManyToOne(()=>USER)
-    @JoinColumn({ name: "id_proveedor" })
-    recidente?: USER; 
     
-    @Column()
+    @Column({name:"NOMBRE"})
     nombre?: string; 
 
-    @Column()
+    @Column({name:"DIRECCION"})
     direccion?: string; 
 
-    @Column()
+    @Column({name:"NUMERO"})
     numero?: string; 
 
-    @Column()
+    @Column({name:"CORREO"})
     correo?: string; 
   
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @CreateDateColumn()
+    @CreateDateColumn({name:"BAJA"})
     baja?: Date;
 }

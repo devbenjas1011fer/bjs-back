@@ -4,29 +4,29 @@ import PERFIL from "./perfil.entity";
 
 @Entity("SERVICIOS_PERFIL")
 export default class SERVICIOS_PERFIL {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;
 
-    @Column()
+    @Column({name:"DESCRIPCION"})
     descripcion?: string; 
     
-    @Column()
+    @Column({name:"ID_SERVICIO"})
     id_servicio?: string;
 
     @ManyToOne(()=>SERVICIOS)
-    @JoinColumn({ name: "id_servicio" })
+    @JoinColumn({ name: "ID_SERVICIO" })
     servicios?: SERVICIOS; 
     
-    @Column()
+    @Column({name:"ID_PERFIL"})
     id_perfil?: string;
    
     @ManyToOne(()=>PERFIL)
-    @JoinColumn({ name: "id_perfil" })
+    @JoinColumn({ name: "ID_PERFIL" })
     perfil?: PERFIL; 
     
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @Column({nullable:true})
+    @Column({nullable:true, name:"BAJA"})
     baja?: Date;
 }

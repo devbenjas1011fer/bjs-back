@@ -3,38 +3,38 @@ import PERFIL from "./perfil.entity";
 import RECIDENTE from "./recidente.entity";
 @Entity("CLIENTE")
 export default class CLIENTE {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;
    
-    @Column("uuid",{nullable:true})
+    @Column("uuid",{nullable:true, name:"ID_PERFIL"})
     id_perfil?: string;
 
-    @Column("uuid", {nullable:true})
+    @Column("uuid", {nullable:true, name:"ID_RECIDENTE"})
     id_recidente?:string;
     
     @ManyToOne(()=>PERFIL)
-    @JoinColumn({ name: "id_perfil" })
+    @JoinColumn({ name: "ID_PERFIL" })
     perfil?: PERFIL; 
    
     @ManyToOne(()=>RECIDENTE)
-    @JoinColumn({ name: "id_recidente" })
+    @JoinColumn({ name: "ID_RECIDENTE" })
     recidente?: RECIDENTE; 
     
-    @Column()
+    @Column({name:"NOMBRE"})
     nombre?: string; 
 
-    @Column()
+    @Column({name:"DIRECCION"})
     direccion?: string; 
 
-    @Column()
+    @Column({name:"NUMERO"})
     numero?: string; 
 
-    @Column()
+    @Column({name:"CORREO"})
     correo?: string; 
   
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @CreateDateColumn({nullable:true})
+    @CreateDateColumn({nullable:true, name:"BAJA"})
     baja?: Date;
 }

@@ -1,30 +1,30 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";   
 @Entity("CONSTRUCTORA")
 export default class CONSTRUCTORA {
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn("uuid", {name:"ID"})
     id?: string;
 
-    @Column()
+    @Column({name:"NOMBRE"})
     nombre?: string;
 
-    @Column()
+    @Column({name:"APODO"})
     apodo?: string;
 
-    @Column()
+    @Column({name:"RFC"})
     rfc?: string;  
 
-    @Column()
+    @Column({name:"NUMERO"})
     numero?: string;
 
-    @Column({nullable:true})
+    @Column({nullable:true, name:"FOTO"})
     foto?: string;
 
-    @Column()
+    @Column({name:"CORREO"})
     correo?: string; 
     
-    @CreateDateColumn()
+    @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @CreateDateColumn({nullable:true})
+    @CreateDateColumn({nullable:true, name:"BAJA"})
     baja?: Date;
 }
