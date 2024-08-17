@@ -39,10 +39,10 @@ router.get("/details/", async function (req:Request,res:Response, _next:NextFunc
     try{ 
         const customer = await AppDataSource.getRepository(PROVEEDOR).findOne({
             where:{
-                id:req.query.idCliente?.toString()
+                id_perfil:req.query.idCliente?.toString()
             }
         }) 
-        res.json(customer) 
+            res.json(customer) 
         
     }catch(err){
         console.log(err);

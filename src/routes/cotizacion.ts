@@ -12,6 +12,10 @@ import { PDFDocument } from 'pdf-lib';
 import PERFIL from '../db/entity/perfil.entity';
 import { createFolio } from '../utils/folio'; 
 import FOLIO_COTIZACION from '../db/entity/folio_coTizacion.entity';
+import PRODUCTO_PERFIL from '../db/entity/producto_perfil.entity';
+import { generateJwtURLSHARE } from '../utils/jwt';
+import VISTAS_COTIZACION from '../db/entity/vistas_cotizacion';
+import { IsNull, Not } from 'typeorm';
 const router = Router();
 
 router.get("/", async function (req: Request, res: Response, _next: NextFunction) {
@@ -28,7 +32,7 @@ router.get("/", async function (req: Request, res: Response, _next: NextFunction
                 proyecto: {
                     involucrados: { perfil: true, recidente: true }
                 },
-                materials: true,
+                materials: {producto:true},
                 servicio: { servicios: true },
             },
             order: {
@@ -56,46 +60,6 @@ router.get("/", async function (req: Request, res: Response, _next: NextFunction
     }
 });
 
-router.get("/:id", async function (req:Request,res:Response, _next:NextFunction){
-    try{ 
-        const cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({
-            where:{
-                proyecto:{
-                    involucrados:{
-                        id_perfil:req.user?.perfil
-                    }
-                }, 
-                id:req.params.id
-            },
-            relations:{
-                proyecto:{
-                    involucrados:true
-                },
-                materials:{producto:true}, 
-                servicio:true, 
-            }
-        }) 
-        let cotizacionForm = {
-            folio:cotizacion!.folio,
-            alta:cotizacion?.alta, 
-            baja:cotizacion?.baja,
-            comment:JSON.parse(cotizacion!.comment!), 
-            estado:cotizacion?.estado,
-            // fecha_inicio:cotizacion?.fecha_inicio, 
-            id:cotizacion?.id, 
-            id_proyecto:cotizacion?.id_proyecto,
-            id_servicio:cotizacion?.id_servicio,
-            materials:cotizacion?.materials,
-            proyecto:cotizacion?.proyecto,
-            servicio:cotizacion?.servicio 
-        }
-        res.json(cotizacionForm) 
-        
-    }catch(err){
-        console.log(err);
-        _next
-    }
-}) 
   
 router.get("/projects", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
@@ -138,10 +102,10 @@ router.post("/create-cotizacion", async function (req: Request, res: Response, _
             id_perfil:req.user?.perfil,
             folio:folioC,
         })
-        await AppDataSource.getRepository(FOLIO_COTIZACION).save(newFolio); 
+        await queryRunner.manager.save(FOLIO_COTIZACION,newFolio); 
         await queryRunner.manager.update(COTIZACION,{id:cot.id}, cot);
         await queryRunner.commitTransaction();
-        res.json(cot);
+        res.json(cot.id);
     } catch (err) {
         await queryRunner.rollbackTransaction();
         console.log(err);
@@ -151,33 +115,50 @@ router.post("/create-cotizacion", async function (req: Request, res: Response, _
     }
 });
 router.post("/add-comment", async function (req: Request, res: Response, _next: NextFunction) {
-    try { 
+    try {
+        let id = req.query.id!.toString()
+        let type = req.query.type!.toString()
         let cotizacion:COTIZACION|null;
-        cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({ where: { id: req.query.id?.toString() } });
-        if (!cotizacion) {
-            res.status(404).json({ message: "Cotización no encontrada" });
-            return;
-        } 
-        let existingComments = cotizacion.comment ? JSON.parse(cotizacion.comment) : [];
+        cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({ where: { id: id } }); 
+        let existingComments = cotizacion!.comment ? JSON.parse(cotizacion!.comment) : [];
         if (!Array.isArray(existingComments)) {
             existingComments = [];
         } 
-        existingComments.push({"to":"USUARIO","comment":req.body.comment});
+        if (!cotizacion) {
+            return res.status(404).json({ message: "Cotización no encontrada" });
+        } 
+        if(type=="update"){
+            let position = req.body.comment.pos;
+            existingComments[position].comment=req.body.comment.comment
+            cotizacion.comment = JSON.stringify(existingComments);
+            await AppDataSource.getRepository(COTIZACION).update({id:id},cotizacion);
+            return res.json(existingComments)
+        }
+        console.log(existingComments.length)
+        existingComments.push({"pos":existingComments.length,"to":"USUARIO","comment":req.body.comment});
         cotizacion.comment = JSON.stringify(existingComments);
         cotizacion = await AppDataSource.getRepository(COTIZACION).save(cotizacion);
-        res.json(JSON.parse(cotizacion.comment!));
+        return res.json(JSON.parse(cotizacion.comment!));
     } catch (err) { 
         _next
     }
 });
 
+
 router.post("/add-material", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
+        const producto = await AppDataSource.getRepository(PRODUCTO_PERFIL).findOne({
+            where:{
+                id:req.body.id
+            }
+        })
+        const importe=parseInt(req.body.cantidad)*parseInt(producto!.precio?.toString()!);
         const mat = await AppDataSource.getRepository(PRODUCTO_COTIZACION).create({
             cantidad:req.body.cantidad, 
-            importe:req.body.importe,
+            importe:importe,
             id_cotizacion:req.query.id?.toString(),
             id_producto:req.body.id,
+            precioU:producto?.precio,
             alta:new Date
         })
         await AppDataSource.getRepository(PRODUCTO_COTIZACION).save(mat)
@@ -200,12 +181,6 @@ router.get("/create-comment", async function (_req:Request,_res:Response, _next:
         _next
     }
 })    
-
-// Definición de la interfaz de Comment
-interface Comment {
-    to: string;
-    comment: string;
-}
 router.post('/generate-pdf/:id', async (req: Request, res: Response) => {
     try { 
         const cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({
@@ -307,7 +282,121 @@ router.post('/generate-pdf/:id', async (req: Request, res: Response) => {
     }
 });
 
+router.post('/share-url/', async (req: Request, res: Response) => {
+    try { 
+        const {idCotizacion} = req.query;
+        const {time, value} = req.body;
+        let timeJWK;
+        let token;
+        let tipo; 
+        let url="http://127.0.0.1:8080/#/quote-inquiry/";
+        let cotizacion = req.query.idCotizacion?.toString();
+        switch (time) {
+            case "minutos":
+                timeJWK = `${value}m`
+                tipo="m"
+                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK);
+                url=url+token
+                break;
+            case "horas":
+                timeJWK = `${value}h`
+                tipo="h"
+                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK);
+                url=url+token
+                break;
+            case "dias":
+                timeJWK = `${value}d`
+                tipo="d"
+                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK);
+                url=url+token
+                break;
+            case "views":  
+                tipo="v"
+                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, "");
+                url=url+token
+                break;        
+            default:
+                break;
+        }
+        const newView = await AppDataSource.getRepository(VISTAS_COTIZACION).create({
+            id_cotizacion:idCotizacion?.toString(),
+            limite: value,
+            tipo:tipo,
+            data:token,
+            vistas:0,
+            alta:new Date(),
+        })
+        const newViewSave = await AppDataSource.getRepository(VISTAS_COTIZACION).save(newView);
+        res.json(newViewSave);
+    } catch (error) {
+        res.status(500).send('Error al crear URL para compartir');
+    }
+});
+
+router.get('/share-url', async (req: Request, res: Response) => {
+    try { 
+        const {idCotizacion,tipo, link} = req.query;
+        const url =await AppDataSource.getRepository(VISTAS_COTIZACION).find({
+            where:{
+                id_cotizacion:idCotizacion?.toString(),
+                // tipo:tipo?.toString()
+                data:link==="true"?Not(IsNull()):IsNull()
+            }
+        })
+        console.log(tipo)
+        res.json(url);
+    } catch (error) {
+        res.status(500).send('Error al crear URL para compartir');
+    }
+});
+
+router.get("/:id", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        const cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({
+            where:{
+                proyecto:{
+                    involucrados:{
+                        id_perfil:req.user?.perfil
+                    }
+                }, 
+                id:req.params.id
+            },
+            relations:{
+                proyecto:{
+                    involucrados:true
+                },
+                materials:{producto:true}, 
+                servicio:true, 
+            }
+        }) 
+        let cotizacionForm = {
+            folio:cotizacion!.folio?.toString(),
+            alta:cotizacion?.alta, 
+            baja:cotizacion?.baja,
+            comment:JSON.parse(cotizacion!.comment!), 
+            estado:cotizacion?.estado,
+            // fecha_inicio:cotizacion?.fecha_inicio, 
+            id:cotizacion?.id, 
+            id_proyecto:cotizacion?.id_proyecto,
+            id_servicio:cotizacion?.id_servicio,
+            materials:cotizacion?.materials,
+            proyecto:cotizacion?.proyecto,
+            servicio:cotizacion?.servicio 
+        }
+        res.json(cotizacionForm) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+}) 
 
 
 
+
+// Definición de la interfaz de Comment
+interface Comment {
+    to: string;
+    comment: string;
+}
 export default router;

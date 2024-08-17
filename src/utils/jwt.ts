@@ -12,6 +12,23 @@ export function generateJwt(userId: string, type: String) {
         }
     );
 }
+
+
+export function generateJwtURLSHARE(userId: string, type: string, idCot: string, duration: string) {
+    return jwt.sign(
+        { 
+            type: type,
+            idCotizacion:idCot
+        },
+        "process.env.JWT_KEY!",
+        {  
+            subject: userId, 
+            expiresIn: duration,
+        }
+    );
+}
+
+
 export function authenticateJwt(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization; 
     if (!authHeader ) {
@@ -34,5 +51,16 @@ export function authenticateJwt(req: Request, res: Response, next: NextFunction)
         }    
         next();
     });
+}
+ 
+
+export async function authenticateJwtSHAREURL(token :string) {
+    let decode = await jwt.verify(token, "process.env.JWT_KEY!", (err, decoded) => {
+        if (err) { 
+            return null;
+        } 
+        return decoded;
+    });
+    return decode;
 }
  

@@ -28,7 +28,7 @@ export default class PRODUCTO_COTIZACION {
     id_producto?: string;    
    
     @OneToOne(()=>PRODUCTO_PERFIL)
-    @JoinColumn({ name: "ID" })
+    @JoinColumn({ name: "ID_PRODUCTO" })
     producto?: PRODUCTO_PERFIL;     
  
     @CreateDateColumn({name:"ALTA"})

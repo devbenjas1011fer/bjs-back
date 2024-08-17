@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, Prim
 import SERVICIOS_PERFIL from "./services_cs.entity"; 
 import PROYECTO from "./proyecto.entity"; 
 import PRODUCTO_COTIZACION from "./producto_cotizacion.entity"; 
+import VISTAS_COTIZACION from "./vistas_cotizacion";
 @Entity("COTIZACION")
 export default class COTIZACION {
     @PrimaryGeneratedColumn("uuid", { name: "ID" })
@@ -31,7 +32,10 @@ export default class COTIZACION {
     // fecha_inicio?: Date;
 
     @OneToMany(() => PRODUCTO_COTIZACION, (w) => w.cotizacion)
-    materials?: PRODUCTO_COTIZACION[];
+    materials?: PRODUCTO_COTIZACION[]; 
+
+    @OneToMany(() => VISTAS_COTIZACION, vistas => vistas.cotizacion)
+    vistas?: VISTAS_COTIZACION[]; 
 
     @Column({ name: "ESTADO" })
     estado?: string;

@@ -15,6 +15,7 @@ import suppliers from "./routes/suppliers";
 import constructionsProjects from "./routes/proyects-constructions";  
 import recidencialProjects from "./routes/proyects-recidencial";  
 import cotizacion from "./routes/cotizacion";  
+import cotizacionConsulta from "./routes/consultas_cotizaciones";  
 import supervision from "./routes/supervision";  
 import projects from "./routes/projects";  
 import configure from "./routes/configuratios";  
@@ -58,6 +59,7 @@ app.use(
 app.use("/", index); 
 app.use("/auth", auth);
 app.use("/rol", rol);
+app.use("/quote-inquiry", cotizacionConsulta);
 
 app.use(authenticateJwt)
 app.use(authenticateToken);
