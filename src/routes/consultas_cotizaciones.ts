@@ -24,11 +24,14 @@ router.get("/:jwk", async function (req: Request, res: Response, _next: NextFunc
                 servicio:true,  
             }
         })
-        const vistas = await AppDataSource.getRepository(VISTAS_COTIZACION).find({
+        const vistas = await AppDataSource.getRepository(VISTAS_COTIZACION).findOneOrFail({
             where:{
+                id:decodeToken["idVista"],
                 id_cotizacion:cotizacion!.id
             }
         })
+        vistas.vistas = vistas.vistas! + 1;
+        await AppDataSource.getRepository(VISTAS_COTIZACION).update({id:vistas.id},vistas);
 
         let cotizacionForm = {
             folio:cotizacion!.folio?.toString(),
@@ -36,7 +39,7 @@ router.get("/:jwk", async function (req: Request, res: Response, _next: NextFunc
             baja:cotizacion?.baja,
             comment:JSON.parse(cotizacion!.comment!), 
             estado:cotizacion?.estado,
-            vistas:vistas,
+            vistas:[vistas],
             // fecha_inicio:cotizacion?.fecha_inicio, 
             id:cotizacion?.id, 
             id_cotiza:cotizacion?.id_proyecto,

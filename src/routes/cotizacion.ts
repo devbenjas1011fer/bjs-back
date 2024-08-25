@@ -143,6 +143,35 @@ router.post("/add-comment", async function (req: Request, res: Response, _next: 
         _next
     }
 });
+router.post("/remove-comment", async function (req: Request, res: Response, _next: NextFunction) {
+    try {
+        let id = req.query.id!.toString()
+        let type = req.query.type!.toString()
+        let cotizacion:COTIZACION|null;
+        cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({ where: { id: id } }); 
+        let existingComments = cotizacion!.comment ? JSON.parse(cotizacion!.comment) : [];
+        if (!Array.isArray(existingComments)) {
+            existingComments = [];
+        } 
+        if (!cotizacion) {
+            return res.status(404).json({ message: "Cotización no encontrada" });
+        } 
+        if(type=="update"){
+            let position = req.body.comment.pos;
+            existingComments[position].comment=req.body.comment.comment
+            cotizacion.comment = JSON.stringify(existingComments);
+            await AppDataSource.getRepository(COTIZACION).update({id:id},cotizacion);
+            return res.json(existingComments)
+        }
+        console.log(existingComments.length)
+        existingComments.push({"pos":existingComments.length,"to":"USUARIO","comment":req.body.comment});
+        cotizacion.comment = JSON.stringify(existingComments);
+        cotizacion = await AppDataSource.getRepository(COTIZACION).save(cotizacion);
+        return res.json(JSON.parse(cotizacion.comment!));
+    } catch (err) { 
+        _next
+    }
+});
 
 
 router.post("/add-material", async function (req:Request,res:Response, _next:NextFunction){
@@ -163,6 +192,47 @@ router.post("/add-material", async function (req:Request,res:Response, _next:Nex
         })
         await AppDataSource.getRepository(PRODUCTO_COTIZACION).save(mat)
         res.json(mat)
+        }catch(err){
+        console.log(err);
+        _next
+    }
+})
+router.get("/increment-material", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        let newCant = parseInt(req.query.cantidad!.toString())+1;
+        await AppDataSource.getRepository(PRODUCTO_COTIZACION).update(req.query.id!.toString(),
+            {
+                cantidad:newCant
+            }
+        ) 
+        res.json(newCant)
+        }catch(err){
+        console.log(err);
+        _next
+    }
+})
+router.get("/decrement-material", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        let newCant = parseInt(req.query.cantidad!.toString())-1;
+        if(newCant==0){
+            return res.json(newCant+1)
+        } 
+        await AppDataSource.getRepository(PRODUCTO_COTIZACION).update(req.query.id!.toString(),
+            {
+                cantidad:newCant
+            }
+        ) 
+            res.json(newCant) 
+    }catch(err){
+        console.log(err);
+        _next
+    }
+})
+
+router.get("/remove-material", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        await AppDataSource.getRepository(PRODUCTO_COTIZACION).delete(req.query.id!.toString()) 
+        res.json(true)
         }catch(err){
         console.log(err);
         _next
@@ -291,43 +361,49 @@ router.post('/share-url/', async (req: Request, res: Response) => {
         let tipo; 
         let url="http://127.0.0.1:8080/#/quote-inquiry/";
         let cotizacion = req.query.idCotizacion?.toString();
-        switch (time) {
-            case "minutos":
-                timeJWK = `${value}m`
-                tipo="m"
-                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK);
-                url=url+token
-                break;
-            case "horas":
-                timeJWK = `${value}h`
-                tipo="h"
-                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK);
-                url=url+token
-                break;
-            case "dias":
-                timeJWK = `${value}d`
-                tipo="d"
-                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK);
-                url=url+token
-                break;
-            case "views":  
-                tipo="v"
-                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, "");
-                url=url+token
-                break;        
-            default:
-                break;
-        }
         const newView = await AppDataSource.getRepository(VISTAS_COTIZACION).create({
             id_cotizacion:idCotizacion?.toString(),
             limite: value,
             tipo:tipo,
-            data:token,
             vistas:0,
             alta:new Date(),
         })
-        const newViewSave = await AppDataSource.getRepository(VISTAS_COTIZACION).save(newView);
-        res.json(newViewSave);
+        await AppDataSource.getRepository(VISTAS_COTIZACION).save(newView);
+        switch (time) {
+            case "minutos":
+                timeJWK = `${value}m`
+                tipo="m"
+                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK,newView.id!);
+                url=url+token
+                newView.data=token
+                break;
+            case "horas":
+                timeJWK = `${value}h`
+                tipo="h"
+                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK,newView.id!);
+                newView.data=token
+                break;
+            case "dias":
+                timeJWK = `${value}d`
+                tipo="d"
+                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, timeJWK,newView.id!);
+                newView.data=token
+                break;
+            case "views":  
+                tipo="v"
+                token = generateJwtURLSHARE(req.user?.id!,"share_url",cotizacion!, "",newView.id!);
+                newView.data=token
+                break;        
+            default:
+                break;
+        }
+        await AppDataSource.getRepository(VISTAS_COTIZACION).save(newView);
+        const views = await AppDataSource.getRepository(VISTAS_COTIZACION).find({
+            where:{
+                id_cotizacion:idCotizacion?.toString()
+            }
+        });
+        res.json(views);
     } catch (error) {
         res.status(500).send('Error al crear URL para compartir');
     }
@@ -336,15 +412,23 @@ router.post('/share-url/', async (req: Request, res: Response) => {
 router.get('/share-url', async (req: Request, res: Response) => {
     try { 
         const {idCotizacion,tipo, link} = req.query;
+        console.log(tipo)
         const url =await AppDataSource.getRepository(VISTAS_COTIZACION).find({
             where:{
                 id_cotizacion:idCotizacion?.toString(),
                 // tipo:tipo?.toString()
                 data:link==="true"?Not(IsNull()):IsNull()
-            }
+            },
+            order: {
+                alta:"DESC"
+            }  
         })
-        console.log(tipo)
-        res.json(url);
+        if(url.length){
+            res.json(url);
+        }else{
+            res.json([]);
+
+        }
     } catch (error) {
         res.status(500).send('Error al crear URL para compartir');
     }

@@ -4,6 +4,7 @@ import USER from '../db/entity/user.entity';
 import { comparePasswords, hashPassword } from '../utils/password'; 
 import { generateJwt } from '../utils/jwt'; 
 import PERFIL from '../db/entity/perfil.entity';
+import RECIDENTE from '../db/entity/recidente.entity';
 // import RECIDENTE from '../db/entity/recidente.entity';
 
 const router = Router();
@@ -57,7 +58,7 @@ router.post("/register", async function (req,res, _next){
 router.post("/login",async function (req,res, next) {
     try{ 
         let usuario;
-        // let recidente;
+        let recidente;
         let perfil;
         usuario = await AppDataSource.getRepository(USER).findOne({
             where:{
@@ -65,13 +66,16 @@ router.post("/login",async function (req,res, next) {
             }, 
         })
         const token = generateJwt(usuario?.id!,req.body.type)
-        if(req.body.type=="RECIDENTE"){
+        if(req.query.type=="RECIDENTE"){
 
-            // recidente = await AppDataSource.getRepository(RECIDENTE).findOne({
-            //     where:{
-            //         id_usuario:usuario!.id,  
-            //     },  
-            // }) 
+            recidente = await AppDataSource.getRepository(RECIDENTE).findOne({
+                where:{
+                    id_usuario:usuario!.id,  
+                },  
+                relations:{
+                    usuario:true
+                }
+            }) 
         }else{
 
                 perfil = await AppDataSource.getRepository(PERFIL).findOne({
@@ -102,10 +106,10 @@ router.post("/login",async function (req,res, next) {
         }) 
         
         return res.json({
-            perfil:perfil,
+            perfil:perfil??recidente,
             token:token,
             nombre:usuario?.nombres+" "+usuario?.apellidos,
-            rol:perfil?.rol?.descripcion
+            rol:perfil?.rol?.descripcion??"RECIDENTE"
         })
 
     }catch(err){
@@ -114,6 +118,43 @@ router.post("/login",async function (req,res, next) {
     }
 });
 
+router.post("/register-recidential", async function (req,res, _next){  
+    let pass = await hashPassword(req.body.pass);
+    try{
+        const us = AppDataSource.getRepository(USER).create({
+            nombres:req.body.nombre,
+            apellidos:  req.body.apellidos,
+            sexo:req.body.sexo,
+            // idRol:req.body.idRol,
+            numero:req.body.numero,
+            correo:req.body.correo, 
+            password:pass,
+        }); 
+        await AppDataSource.getRepository(USER).save(us) 
+        //Crear rol 
+        const recident  = await AppDataSource.getRepository(RECIDENTE).create({
+            id_usuario:us.id,
+            alta:new Date, 
+        })
+        await AppDataSource.getRepository(RECIDENTE).save(recident) 
+        const token = generateJwt(us.id!,req.body.type)
+        res.cookie("jwt",token,{
+            httpOnly:true,
+            sameSite:"none",
+            secure:true,
+            maxAge:24*60*1000
+        }) 
+        return res.json({
+            token:token,
+            nombre:us.nombres+" "+us.apellidos,
+            rol:"RECIDENTE"
+        })
+    }catch(err){
+        console.log(err);
+        _next(err)
+    }
+    // res.cookie()
+})
 
 router.post("/register-recident", async function (req,res, _next){  
     let pass = await hashPassword(req.body.pass);
@@ -159,63 +200,4 @@ router.post("/register-recident", async function (req,res, _next){
     }
     // res.cookie()
 })
-router.post("/login-recident",async function (req,res, next) {
-    try{ 
-        let usuario;
-        // let recidente;
-        let perfil;
-        usuario = await AppDataSource.getRepository(USER).findOne({
-            where:{
-                correo:req.body.user,  
-            }, 
-        })
-        const token = generateJwt(usuario?.id!,req.body.type)
-        if(req.body.type=="RECIDENTE"){
-
-            // recidente = await AppDataSource.getRepository(RECIDENTE).findOne({
-            //     where:{
-            //         id_usuario:usuario!.id,  
-            //     },  
-            // }) 
-        }else{
-
-                perfil = await AppDataSource.getRepository(PERFIL).findOne({
-                    where:{
-                        id_usuario:usuario!.id,  
-                    },   
-                    relations:{rol:true, usuario:true}
-                })  
-        }
-        
-        let pass = await comparePasswords(req.body.pass, usuario?.password!);
-        if(!pass){ 
-            //QUITAR
-
-        // return res.json({
-        //     perfil:perfil,
-        //     token:token,
-        //     nombre:usuario?.nombres+" "+usuario?.apellidos,
-        //     rol:perfil?.rol?.descripcion
-        // })
-            return res.status(404).send("Datos incorrectos")
-        }  
-        res.cookie("jwt",token,{
-            httpOnly:true,
-            sameSite:"none",
-            secure:true,
-            maxAge:24*60*1000
-        }) 
-        
-        return res.json({
-            perfil:perfil,
-            token:token,
-            nombre:usuario?.nombres+" "+usuario?.apellidos,
-            rol:perfil?.rol?.descripcion
-        })
-
-    }catch(err){
-        console.log(err)
-        next(err);
-    }
-});
 export default router;

@@ -18,6 +18,7 @@ import cotizacion from "./routes/cotizacion";
 import cotizacionConsulta from "./routes/consultas_cotizaciones";  
 import supervision from "./routes/supervision";  
 import projects from "./routes/projects";  
+import hire from "./routes/hire";  
 import configure from "./routes/configuratios";  
 
 import { handle404,   } from "./middleware/error-handler";
@@ -77,6 +78,10 @@ app.use("/cotizaciones", cotizacion);
 app.use("/supervision", supervision);
 app.use("/configure", configure);
  
+//Recident
+
+app.use("/hire",hire)
+
 
 
 app.use(handle404); 

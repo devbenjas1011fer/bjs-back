@@ -14,11 +14,12 @@ export function generateJwt(userId: string, type: String) {
 }
 
 
-export function generateJwtURLSHARE(userId: string, type: string, idCot: string, duration: string) {
+export function generateJwtURLSHARE(userId: string, type: string, idCot: string, duration: string, idView: string) {
     return jwt.sign(
         { 
             type: type,
-            idCotizacion:idCot
+            idCotizacion:idCot,
+            idVista:idView
         },
         "process.env.JWT_KEY!",
         {  

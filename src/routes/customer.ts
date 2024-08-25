@@ -44,15 +44,15 @@ router.get("/details/", async function (req:Request,res:Response, _next:NextFunc
             }
         }) 
         if(customer?.id_recidente==null){
-            const newUserVinculed = await AppDataSource.getRepository(RECIDENTE).findOne({
+            const recidente = await AppDataSource.getRepository(RECIDENTE).findOne({
                 where:{
                     usuario:{
                         numero:customer?.numero
                     }
-                }
+                },relations:{usuario:true}
             }) 
-            if(newUserVinculed!=null){
-                res.json({...customer,newUserVinculed,new:true})
+            if(recidente!=null){
+                res.json({...customer,recidente,new:true})
             }else{ 
                 res.json(customer) 
             }
@@ -65,5 +65,15 @@ router.get("/details/", async function (req:Request,res:Response, _next:NextFunc
         _next
     }
 })  
+router.post("/vincule", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        const cliente = await AppDataSource.getRepository(CLIENTE).findOne({where:{id:req.body.customer}})
+        cliente!.id_recidente=req.body.recident;
+        await AppDataSource.getRepository(CLIENTE).update({id:req.body.customer},cliente!)
+        res.json("j");
+    }catch(err){
+        _next
+
+}});
 
 export default router;
