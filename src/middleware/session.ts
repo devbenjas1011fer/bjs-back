@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { AppDataSource } from "../db/dataService"; 
 import USER from "../db/entity/user.entity"; 
 import PERFIL from "../db/entity/perfil.entity";
+import RECIDENTE from "../db/entity/recidente.entity";
 declare global {
     namespace Express {
         interface Request { 
@@ -20,14 +21,14 @@ export const authenticateToken = async (req: Request, _res: Response, next: Next
     user = await AppDataSource.getRepository(USER).findOne({
         where:{id:req.user!.id?.toString()},
     });
-    if(req.body.type=="RECIDENTE"){
-        recidente = await AppDataSource.getRepository(PERFIL).findOne({
-            where:{id_usuario:req.user!.id?.toString()},
+    if(req.user?.roles.some((r)=>r==="RECIDENTE") ){
+        recidente = await AppDataSource.getRepository(RECIDENTE).findOne({
+            where:{id_usuario:user!.id},
         });
         console.log(recidente)
     }else{
         perfil = await AppDataSource.getRepository(PERFIL).findOne({
-            where:{id_usuario:req.user!.id?.toString()},
+            where:{id_usuario:req.user!.id?.toString()},relations:{rol:true}
         });
     }   
     if (perfil!=null){
@@ -37,7 +38,20 @@ export const authenticateToken = async (req: Request, _res: Response, next: Next
             name: user!.nombres! ,
             perfil: perfil.id!,
             token: req.user?.token!,
-            roles: []
+            roles: [],
+            idRol:perfil.rol!.id!
+        };
+
+    }   
+    if (recidente!=null){
+        
+        req.user = {
+            id: req.user!.id,
+            name: user!.nombres! ,
+            perfil: recidente.id!,
+            token: req.user?.token!,
+            roles: ["RECIDENTE"],
+            idRol:"",
         };
 
     }

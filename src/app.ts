@@ -12,13 +12,12 @@ import myMaterials from "./routes/my-materials";
 import constructora from "./routes/construction";  
 import index from "./routes/index";  
 import suppliers from "./routes/suppliers";  
-import constructionsProjects from "./routes/proyects-constructions";  
-import recidencialProjects from "./routes/proyects-recidencial";  
 import cotizacion from "./routes/cotizacion";  
 import cotizacionConsulta from "./routes/consultas_cotizaciones";  
 import supervision from "./routes/supervision";  
 import projects from "./routes/projects";  
 import hire from "./routes/hire";  
+import access from "./routes/access";  
 import configure from "./routes/configuratios";  
 
 import { handle404,   } from "./middleware/error-handler";
@@ -28,6 +27,7 @@ import { authenticateToken } from "./middleware/session";
 import { authenticateJwt } from "./utils/jwt";
 
 import path from 'path';
+import { responseHandler } from "./middleware/response-handler";
  
 const app = express(); 
 
@@ -57,6 +57,7 @@ app.use(
     })
 );
 
+app.use(responseHandler)
 app.use("/", index); 
 app.use("/auth", auth);
 app.use("/rol", rol);
@@ -64,6 +65,7 @@ app.use("/quote-inquiry", cotizacionConsulta);
 
 app.use(authenticateJwt)
 app.use(authenticateToken);
+app.use("/access", access);
 
 app.use("/customer", customer);
 app.use("/services", services);
@@ -72,11 +74,9 @@ app.use("/my-materials", myMaterials);
 app.use("/constructora", constructora);
 app.use("/suppliers", suppliers);
 app.use("/projects",projects );
-app.use("/recidencial-projects",recidencialProjects );
-app.use("/constructions-projects", constructionsProjects);
 app.use("/cotizaciones", cotizacion);
 app.use("/supervision", supervision);
-app.use("/configure", configure);
+app.use("/configurations", configure);
  
 //Recident
 

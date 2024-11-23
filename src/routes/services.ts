@@ -5,7 +5,32 @@ import CLIENTE from '../db/entity/cliente.entity';
 import SERVICIOS_PERFIL from '../db/entity/services_cs.entity';
 import SERVICIOS from '../db/entity/services.entity';
 const router = Router();
-router.post("/create", async function (req:Request,res:Response, _next:NextFunction){
+router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
+    try{ 
+        const services = await AppDataSource.getRepository(SERVICIOS).find({
+             
+        }) 
+        res.json(services) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+}) 
+router.post("/", async function (req:Request,res:Response, _next:NextFunction){
+    try{  
+        const serv =await AppDataSource.getRepository(SERVICIOS).create({
+            descripcion: req.body.descripcion, 
+        })
+        await AppDataSource.getRepository(SERVICIOS_PERFIL).save(serv)
+        res.json({}) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+})   
+router.post("/my-service-create", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
         const servicio= await AppDataSource.getRepository(SERVICIOS).findOne({
         where:{id:req.body.id}
@@ -18,18 +43,6 @@ router.post("/create", async function (req:Request,res:Response, _next:NextFunct
         })
         await AppDataSource.getRepository(SERVICIOS_PERFIL).save(serv)
         res.json({}) 
-        
-    }catch(err){
-        console.log(err);
-        _next
-    }
-})  
-router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
-    try{ 
-        const services = await AppDataSource.getRepository(SERVICIOS).find({
-             
-        }) 
-        res.json(services) 
         
     }catch(err){
         console.log(err);

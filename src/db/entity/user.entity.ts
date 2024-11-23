@@ -28,6 +28,6 @@ export default class USER {
     @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @Column({name:"BAJA"})
+    @Column({name:"BAJA", nullable:true})
     baja?: Date;
 }

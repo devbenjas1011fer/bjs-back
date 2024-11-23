@@ -7,6 +7,7 @@ declare namespace Express {
       recidente?: string;
       token: string;
       roles: string[]; 
+      idRol: string;  
     };
   }
 }

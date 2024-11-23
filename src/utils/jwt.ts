@@ -41,13 +41,14 @@ export function authenticateJwt(req: Request, res: Response, next: NextFunction)
             return res.status(401).json({ message: 'Token is not valid' });
         } 
 
-        if (!req.user) {
+            if (!req.user) {
             req.user = {
                 id: (decoded as any).sub,
                 name: '',
                 perfil: "",
                 token: token,
-                roles: []
+                roles:[(decoded as any).type,],
+                idRol:""
             };
         }    
         next();

@@ -1,5 +1,4 @@
-import { PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, Entity } from "typeorm"; 
-import PERFIL from "./perfil.entity";
+import { PrimaryGeneratedColumn, Column, CreateDateColumn, Entity } from "typeorm"; 
  
 @Entity("ACCESO")
 export default class ACCESO {
@@ -10,10 +9,7 @@ export default class ACCESO {
     acceso?: string;
 
     @Column()
-    id_perfil?: string;
-
-    @ManyToOne(()=>PERFIL)
-    rol?: PERFIL;                                                                                  
+    id_perfil?: string;                                                                          
     
     @CreateDateColumn({nullable:false})
     alta?: Date;

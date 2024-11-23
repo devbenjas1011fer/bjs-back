@@ -20,29 +20,51 @@ const router = Router();
 
 router.get("/", async function (req: Request, res: Response, _next: NextFunction) {
     try {
-        const cotizaciones = await AppDataSource.getRepository(COTIZACION).find({
-            where: {
-                proyecto: {
-                    involucrados: {
-                        id_perfil: req.user?.perfil
-                    }
-                }
-            },
-            relations: {
-                proyecto: {
-                    involucrados: { perfil: true, recidente: true }
-                },
-                materials: {producto:true},
-                servicio: { servicios: true },
-            },
-            order: {
-                alta: 'DESC'
-            }
-        });
+        let where = 'involucrados.id_perfil = :idPerfil'; 
+        
+        switch (req.query.type) {
+            case "send":
+                where += ' AND EXISTS (SELECT 1 FROM "C##TST_BS"."VISTAS_COTIZACION" WHERE "C##TST_BS"."VISTAS_COTIZACION".ID_COTIZACION = cotizacion.id)'; 
+                break;
+            case "recibed":
+                where += ' '; 
+                break;
+            case "saved":
+                where += ' '; 
+                break;
+            case "drafts":
+                where += ' '; 
+                break;
+            case "cancelled":
+                where += ' '; 
+                break;
+            case "rejected":
+                where += ' '; 
+                break;
+            default:
+                break;
+        }
+        
+        const cotizaciones = await AppDataSource.getRepository(COTIZACION)
+            .createQueryBuilder('cotizacion')
+            .leftJoinAndSelect('cotizacion.proyecto', 'proyecto')
+            .leftJoinAndSelect('proyecto.involucrados', 'involucrados')
+            .leftJoinAndSelect('involucrados.perfil', 'perfil')
+            .leftJoinAndSelect('involucrados.recidente', 'recidente')
+            .leftJoinAndSelect('cotizacion.materials', 'materials')
+            .leftJoinAndSelect('materials.producto', 'producto')
+            .leftJoinAndSelect('cotizacion.servicio', 'servicio')
+            .leftJoinAndSelect('servicio.servicios', 'servicios')
+            .leftJoinAndSelect('cotizacion.vistas', 'vistas')
+            .where(where)
+            .setParameters({ idPerfil: req.user?.perfil }) 
+            .orderBy('cotizacion.alta', 'DESC')
+            .getMany();
+        
 
-        // Parsear el atributo 'comment'
+
+
         const parsedCotizaciones = cotizaciones.map(cotizacion => {
-            // Si el comentario es nulo, lo dejamos como está, de lo contrario, intentamos parsearlo
             if (cotizacion.comment !== null && cotizacion.comment !== undefined) {
                 try {
                     cotizacion.comment = JSON.parse(cotizacion.comment);
@@ -434,20 +456,119 @@ router.get('/share-url', async (req: Request, res: Response) => {
     }
 });
 
-router.get("/:id", async function (req:Request,res:Response, _next:NextFunction){
-    try{ 
-        const cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({
-            where:{
-                proyecto:{
-                    involucrados:{
-                        id_perfil:req.user?.perfil
+
+router.get("/recidente", async function (req: Request, res: Response, _next: NextFunction) {
+    try {
+        let whereCondition: any = {};
+
+        switch (req.query.type) {
+            case "creator":
+                whereCondition = {
+                    proyecto: {
+                        involucrados: {
+                            id_perfil: req.user?.perfil
+                        }
+                    },
+                    vistas: {
+                        id: IsNull()  
                     }
-                }, 
-                id:req.params.id
+                };
+                break;
+            case "received":
+                whereCondition = {
+                    proyecto: {
+                        involucrados: {
+                            recidente: { id_usuario: req.user?.id }
+                        }
+                    },
+                    vistas: {
+                        id: IsNull()  
+                    }
+                };
+                break;
+                case "shared-with-me":
+                    whereCondition = {
+                        proyecto: {
+                            involucrados: {
+                                recidente: { id_usuario: req.user?.id }
+                            }
+                        },
+                        vistas: {
+                            id: Not(IsNull())  
+                        }
+                    };
+                    break;
+                    case "completed":
+                        whereCondition = {
+                            proyecto: {
+                                involucrados: {
+                                    recidente: { id_usuario: req.user?.id }
+                                }
+                            },
+                            estado:"COMPLETADO"
+                        };
+                        break;
+                    case "cancelled":
+                        whereCondition = {
+                            proyecto: {
+                                involucrados: {
+                                    recidente: { id_usuario: req.user?.id }
+                                }
+                            },
+                            estado:"CANCELADO"
+                        };
+                        break;
+            default: 
+                throw new Error("Tipo de consulta no válido");
+        }
+         
+        const cotizacion = await AppDataSource.getRepository(COTIZACION).find({
+            where: whereCondition,
+            relations: {
+                proyecto: {
+                    involucrados: { perfil: true, recidente: true }
+                },
+                materials: { producto: true },
+                servicio: { servicios: true },
+                vistas:true
             },
+            order: {
+                alta: 'DESC'
+            }
+        });  
+        const parsedCotizaciones = cotizacion.map(cotizacion => { 
+            if (cotizacion.comment !== null && cotizacion.comment !== undefined) {
+                try {
+                    cotizacion.comment = JSON.parse(cotizacion.comment);
+                } catch (error) {
+                    console.log(`Error parsing comment for cotizacion ID ${cotizacion.id}:`, error);
+                }
+            }
+            return cotizacion;
+        });
+        res.json(parsedCotizaciones);
+    } catch (err) {
+        console.log(err);
+        _next(err);
+    }
+});
+router.get("/:id", async function (req:Request,res:Response, _next:NextFunction){
+    try{  
+        const cotizacion = await AppDataSource.getRepository(COTIZACION).findOneOrFail({
+            where:[{proyecto:{
+                involucrados:{
+                    id_perfil:req.user?.perfil
+                }
+            }, 
+            id:req.params.id},{proyecto:{
+                involucrados:{
+                    id_recidente:req.user?.perfil
+                }
+            }, 
+            id:req.params.id}],
             relations:{
                 proyecto:{
-                    involucrados:true
+                    involucrados:{recidente:true},
                 },
                 materials:{producto:true}, 
                 servicio:true, 
