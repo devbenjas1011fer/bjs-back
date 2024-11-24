@@ -31,7 +31,7 @@ export default class    PRODUCTO_PERFIL {
     @JoinColumn({ name: "ID_TIPO_PRODUCTO" })
     tipoProducto?: TIPO_PRODUCTO;  
 
-    @Column({name:"ID_TIPO_PRODUCTO", nullable:true})
+    @Column({name:"ID_PRODUCTO", nullable:true})
     id_producto?: string;
 
     @ManyToOne(()=>PRODUCTO)

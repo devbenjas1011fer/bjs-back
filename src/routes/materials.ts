@@ -8,16 +8,13 @@ import PRODUCTO from '../db/entity/producto.entity';
 const router = Router();
 router.post("/create", async function (req:Request,res:Response, _next:NextFunction){
     try{
-        const material = AppDataSource.getRepository(PRODUCTO_PERFIL).create({
-                descripcion:req.body.nombre,
-                cantidad:req.body.cantidad,
+        const material = AppDataSource.getRepository(PRODUCTO).create({
+                descripcion:req.body.nombre, 
                 precio:req.body.precio,
                 id_tipo_producto:req.body.tipo,
-                id_perfil:req.user?.perfil,
-                alta:new Date()
         })
-        await AppDataSource.getRepository(PRODUCTO_PERFIL).save(material)
-        res.json() 
+        await AppDataSource.getRepository(PRODUCTO).save(material)
+        res.json(material) 
         
     }catch(err){
         console.log(err);

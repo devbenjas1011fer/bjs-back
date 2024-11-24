@@ -22,8 +22,8 @@ router.post("/", async function (req:Request,res:Response, _next:NextFunction){
         const serv =await AppDataSource.getRepository(SERVICIOS).create({
             descripcion: req.body.descripcion, 
         })
-        await AppDataSource.getRepository(SERVICIOS_PERFIL).save(serv)
-        res.json({}) 
+        await AppDataSource.getRepository(SERVICIOS).save(serv)
+        res.json(serv) 
         
     }catch(err){
         console.log(err);
