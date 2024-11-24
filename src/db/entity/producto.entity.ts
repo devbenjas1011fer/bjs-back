@@ -22,6 +22,6 @@ export default class  PRODUCTO {
     @CreateDateColumn({name:"ALTA"})
     alta?: Date;
 
-    @Column({name:"BAJA"})
+    @Column({name:"BAJA", nullable:true})
     baja?: Date;
 }

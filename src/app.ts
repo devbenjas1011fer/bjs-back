@@ -18,6 +18,7 @@ import supervision from "./routes/supervision";
 import projects from "./routes/projects";  
 import hire from "./routes/hire";  
 import access from "./routes/access";  
+import materialsTipos from "./routes/tipos-materiales";  
 import configure from "./routes/configuratios";  
 
 import { handle404,   } from "./middleware/error-handler";
@@ -69,6 +70,7 @@ app.use("/access", access);
 
 app.use("/customer", customer);
 app.use("/services", services);
+app.use("/tipos-materiales", materialsTipos);
 app.use("/materials", materials);
 app.use("/my-materials", myMaterials);
 app.use("/constructora", constructora);

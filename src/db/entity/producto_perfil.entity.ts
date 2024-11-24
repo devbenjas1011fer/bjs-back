@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";  
 import PERFIL from "./perfil.entity";
 import TIPO_PRODUCTO from "./tipo_producto_cs.entity";
+import PRODUCTO from "./producto.entity";
 
 @Entity("PRODUCTO_PERFIL")
 export default class    PRODUCTO_PERFIL {
@@ -27,8 +28,15 @@ export default class    PRODUCTO_PERFIL {
     id_tipo_producto?: string;
 
     @ManyToOne(()=>TIPO_PRODUCTO)
-    @JoinColumn({ name: "ID" })
+    @JoinColumn({ name: "ID_TIPO_PRODUCTO" })
     tipoProducto?: TIPO_PRODUCTO;  
+
+    @Column({name:"ID_TIPO_PRODUCTO", nullable:true})
+    id_producto?: string;
+
+    @ManyToOne(()=>PRODUCTO)
+    @JoinColumn({ name: "ID_PRODUCTO"})
+    producto?: PRODUCTO;  
     
     @CreateDateColumn({name:"ALTA"})
     alta?: Date;
