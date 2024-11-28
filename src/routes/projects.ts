@@ -52,7 +52,7 @@ router.get("/details/", async function (req:Request,res:Response, _next:NextFunc
         _next
     }
 })  
-router.post("/create", async function (req:Request,res:Response, _next:NextFunction){
+router.post("/", async function (req:Request,res:Response, _next:NextFunction){
     try{
         const project = await AppDataSource.getRepository(PROYECTO).create({
                 id_involucrados:req.body.client,
@@ -69,4 +69,28 @@ router.post("/create", async function (req:Request,res:Response, _next:NextFunct
         _next
     }
 })  
+
+router.put(
+    "/",
+    async function (req: Request, res: Response, _next: NextFunction) {
+      try {
+        const project = await AppDataSource.getRepository(PROYECTO).findOne({
+          where: {
+            id: req.body.id,
+          },
+        });
+        project!.id_involucrados = req.body.idInvolucrados;
+        project!.nombre = req.body.nombre;
+        project!.tipo = req.body.tipo.toUpperCase();
+        project!.descripcion = req.body.descripcion;
+        project!.direccion = req.body.direccion;
+  
+        await AppDataSource.getRepository(PROYECTO).save(project!);
+        res.json();
+      } catch (err) {
+        console.log(err);
+        _next;
+      }
+    }
+  );
 export default router;

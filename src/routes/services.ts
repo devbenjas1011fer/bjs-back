@@ -17,12 +17,42 @@ router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
         _next
     }
 }) 
+
+router.get("/:id", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        const services = await AppDataSource.getRepository(SERVICIOS).findOne({
+             where:{
+                id:req.params.id
+             }
+        }) 
+        res.json(services) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+}) 
 router.post("/", async function (req:Request,res:Response, _next:NextFunction){
     try{  
         const serv =await AppDataSource.getRepository(SERVICIOS).create({
             descripcion: req.body.descripcion, 
         })
         await AppDataSource.getRepository(SERVICIOS).save(serv)
+        res.json(serv) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+})   
+
+router.put("/", async function (req:Request,res:Response, _next:NextFunction){
+    try{  
+        const serv = await AppDataSource.getRepository(SERVICIOS).findOne({
+            where:{id:req.body.id}
+        })
+        serv!.descripcion=req.body.descripcion;
+        await AppDataSource.getRepository(SERVICIOS).save(serv!);
         res.json(serv) 
         
     }catch(err){
