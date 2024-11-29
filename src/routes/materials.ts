@@ -1,12 +1,23 @@
 import { Router } from 'express';    
 import { AppDataSource } from '../db/dataService';
 import { Request, Response, NextFunction } from 'express';
-import CLIENTE from '../db/entity/cliente.entity';  
 import PRODUCTO_PERFIL from '../db/entity/producto_perfil.entity';
 import TIPO_PRODUCTO from '../db/entity/tipo_producto_cs.entity';
 import PRODUCTO from '../db/entity/producto.entity';
 const router = Router();
-router.post("/create", async function (req:Request,res:Response, _next:NextFunction){
+router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
+    try{ 
+        const services = await AppDataSource.getRepository(PRODUCTO).find({
+             
+        }) 
+        res.json(services) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+}) 
+router.post("/", async function (req:Request,res:Response, _next:NextFunction){
     try{
         const material = AppDataSource.getRepository(PRODUCTO).create({
                 descripcion:req.body.nombre, 
@@ -21,18 +32,25 @@ router.post("/create", async function (req:Request,res:Response, _next:NextFunct
         _next
     }
 })  
-router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
-    try{ 
-        const services = await AppDataSource.getRepository(PRODUCTO).find({
-             
-        }) 
-        res.json(services) 
+router.put("/", async function (req:Request,res:Response, _next:NextFunction){
+    try{
+        const material = await AppDataSource.getRepository(PRODUCTO).findOne({
+            where:{
+                id:req.body.id
+            }
+        }); 
+        material!.descripcion=req.body.descripcion, 
+        material!.precio=req.body.precio.toString(),
+        material!.id_tipo_producto=req.body.id_tipo_producto,
+       
+        await AppDataSource.getRepository(PRODUCTO).save(material!)
+        res.json(material) 
         
     }catch(err){
         console.log(err);
         _next
     }
-}) 
+})  
 router.get("/tipo-material", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
         const services = await AppDataSource.getRepository(PRODUCTO).findOne({
@@ -73,14 +91,14 @@ router.get("/tipos", async function (_req:Request,res:Response, _next:NextFuncti
         _next
     }
 })  
-router.get("/details/", async function (req:Request,res:Response, _next:NextFunction){
+router.get("/:id", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
-        const customer = await AppDataSource.getRepository(CLIENTE).findOne({
+        const material = await AppDataSource.getRepository(PRODUCTO).findOne({
             where:{
-                id:req.query.idCliente?.toString()
+                id:req.params.id
             }
         }) 
-        res.json(customer) 
+        res.json(material) 
         
     }catch(err){
         console.log(err);
