@@ -15,6 +15,8 @@ import PROYECTO from "./entity/proyecto.entity";
 import PRODUCTO from "./entity/producto.entity";
 import PRODUCTO_PERFIL from "./entity/producto_perfil.entity";
 import TIPO_PRODUCTO from "./entity/tipo_producto_cs.entity";
+import COTIZACION from "./entity/cotizacion.entity";
+import PRODUCTO_COTIZACION from "./entity/producto_cotizacion.entity";
 
 dotenv.config();
 
@@ -29,7 +31,7 @@ export const AppDataSource = new DataSource({
     logging: true,
     connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${process.env.DB_HOST})(PORT=${process.env.DB_PORT}))(CONNECT_DATA=(SID=${process.env.DB_SID})))`,
     entities: [
-        ACCESO, ROL, USER, PERFIL, SECCION, ROL_SECCION, SERVICIOS, SERVICIOS_PERFIL, RECIDENTE, CLIENTE, PROYECTO, PRODUCTO, TIPO_PRODUCTO, PRODUCTO_PERFIL
+        ACCESO, ROL, USER, RECIDENTE, PERFIL, SECCION, ROL_SECCION, SERVICIOS, SERVICIOS_PERFIL, RECIDENTE, CLIENTE, PROYECTO, PRODUCTO, TIPO_PRODUCTO, PRODUCTO_PERFIL, COTIZACION, PRODUCTO_COTIZACION,
     ],
     synchronize:true,
     useUTC: true,

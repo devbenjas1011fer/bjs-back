@@ -1,5 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne,  PrimaryGeneratedColumn } from "typeorm";
-import COTIZACION from "./cotizacion.entity";
+import { Column, Entity,     PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("VISTAS_COTIZACION")
 export default class VISTAS_COTIZACION {
@@ -9,9 +8,9 @@ export default class VISTAS_COTIZACION {
     @Column({nullable:true, name:"ID_COTIZACION"})
     id_cotizacion?: string; 
     
-    @ManyToOne(() => COTIZACION, cotizacion => cotizacion.vistas)
-    @JoinColumn({ name: "ID_COTIZACION" })
-    cotizacion?: COTIZACION;
+    // @ManyToOne(() => COTIZACION, cotizacion => cotizacion.vistas)
+    // @JoinColumn({ name: "ID_COTIZACION" })
+    // cotizacion?: COTIZACION;
 
     @Column({name:"TIPO"})
     tipo?: String;

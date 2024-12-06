@@ -24,7 +24,7 @@ router.get("/", async function (req: Request, res: Response, _next: NextFunction
         
         switch (req.query.type) {
             case "send":
-                where += ' AND EXISTS (SELECT 1 FROM "C##TST_BS"."VISTAS_COTIZACION" WHERE "C##TST_BS"."VISTAS_COTIZACION".ID_COTIZACION = cotizacion.id)'; 
+                // where += ' AND EXISTS (SELECT 1 FROM "C##TST_BS"."VISTAS_COTIZACION" WHERE "C##TST_BS"."VISTAS_COTIZACION".ID_COTIZACION = cotizacion.id)'; 
                 break;
             case "recibed":
                 where += ' '; 
@@ -54,8 +54,7 @@ router.get("/", async function (req: Request, res: Response, _next: NextFunction
             .leftJoinAndSelect('cotizacion.materials', 'materials')
             .leftJoinAndSelect('materials.producto', 'producto')
             .leftJoinAndSelect('cotizacion.servicio', 'servicio')
-            .leftJoinAndSelect('servicio.servicios', 'servicios')
-            .leftJoinAndSelect('cotizacion.vistas', 'vistas')
+            .leftJoinAndSelect('servicio.servicios', 'servicios') 
             .where(where)
             .setParameters({ idPerfil: req.user?.perfil }) 
             .orderBy('cotizacion.alta', 'DESC')
@@ -530,7 +529,7 @@ router.get("/recidente", async function (req: Request, res: Response, _next: Nex
                 },
                 materials: { producto: true },
                 servicio: { servicios: true },
-                vistas:true
+                // vistas:true
             },
             order: {
                 alta: 'DESC'
