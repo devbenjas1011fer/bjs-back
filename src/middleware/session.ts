@@ -51,7 +51,7 @@ export const authenticateToken = async (req: Request, _res: Response, next: Next
             perfil: recidente.id!,
             token: req.user?.token!,
             roles: ["RECIDENTE"],
-            idRol:"",
+            idRol:recidente.id_rol!,
         };
 
     }

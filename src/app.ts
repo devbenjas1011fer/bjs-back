@@ -6,6 +6,7 @@ import logger from "morgan";
 import auth from "./routes/auth";  
 import rol from "./routes/rol";  
 import customer from "./routes/customer"; 
+import servicesTypes from "./routes/services-types"; 
 import services from "./routes/services"; 
 import materials from "./routes/materials"; 
 import myMaterials from "./routes/my-materials"; 
@@ -69,6 +70,7 @@ app.use(authenticateToken);
 app.use("/access", access);
 
 app.use("/customer", customer);
+app.use("/services-types", servicesTypes);
 app.use("/services", services);
 app.use("/tipos-materiales", materialsTipos);
 app.use("/materials", materials);

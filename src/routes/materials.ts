@@ -4,6 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 import PRODUCTO_PERFIL from '../db/entity/producto_perfil.entity';
 import TIPO_PRODUCTO from '../db/entity/tipo_producto_cs.entity';
 import PRODUCTO from '../db/entity/producto.entity';
+import { Like } from 'typeorm';
 const router = Router();
 router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
     try{ 
@@ -17,6 +18,20 @@ router.get("/", async function (_req:Request,res:Response, _next:NextFunction){
         _next
     }
 }) 
+router.get("/search", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        const material = await AppDataSource.getRepository(PRODUCTO).find({
+            where:{
+                descripcion:Like(`${req.query.text}%`)
+             }
+        }) 
+        res.json(material) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+})  
 router.post("/", async function (req:Request,res:Response, _next:NextFunction){
     try{
         const material = AppDataSource.getRepository(PRODUCTO).create({
@@ -69,6 +84,22 @@ router.get("/my", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
         const services = await AppDataSource.getRepository(PRODUCTO_PERFIL).find({
             where:{
+                id_perfil:req.user?.perfil
+            }
+        }) 
+        res.json(services) 
+        
+    }catch(err){
+        console.log(err);
+        _next
+    }
+}) 
+
+router.get("/search-my", async function (req:Request,res:Response, _next:NextFunction){
+    try{ 
+        const services = await AppDataSource.getRepository(PRODUCTO_PERFIL).find({
+            where:{
+                descripcion:Like(`${req.query.text}%`),
                 id_perfil:req.user?.perfil
             }
         }) 

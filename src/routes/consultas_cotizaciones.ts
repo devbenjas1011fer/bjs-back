@@ -21,7 +21,7 @@ router.get("/:jwk", async function (req: Request, res: Response, _next: NextFunc
                     involucrados:true
                 },
                 materials:{producto:true}, 
-                servicio:true,  
+                servicioOperacion:true,  
             }
         })
         const vistas = await AppDataSource.getRepository(VISTAS_COTIZACION).findOneOrFail({
@@ -44,10 +44,10 @@ router.get("/:jwk", async function (req: Request, res: Response, _next: NextFunc
             id:cotizacion?.id, 
             id_cotiza:cotizacion?.id_proyecto,
             id_proyecto:cotizacion?.id_proyecto,
-            id_servicio:cotizacion?.id_servicio,
+            id_servicio:cotizacion?.id_servicio_operacion,
             materials:cotizacion?.materials,
             proyecto:cotizacion?.proyecto,
-            servicio:cotizacion?.servicio 
+            servicio:cotizacion?.servicioOperacion 
         }
         res.json(cotizacionForm)
     }catch(err){

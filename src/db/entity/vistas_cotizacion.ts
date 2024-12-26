@@ -1,12 +1,18 @@
-import { Column, Entity,     PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity,     JoinColumn,     ManyToOne,     PrimaryGeneratedColumn } from "typeorm";
+import COTIZACION from "./cotizacion.entity";
 
 @Entity("VISTAS_COTIZACION")
 export default class VISTAS_COTIZACION {
     @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;    
     
-    @Column({nullable:true, name:"ID_COTIZACION"})
-    id_cotizacion?: string; 
+    
+    @ManyToOne(()=>COTIZACION) 
+    @JoinColumn({ name: "ID_COTIZACION" })
+    cotizacion?: COTIZACION;
+    
+    @Column({name:"ID_COTIZACION", nullable:true})
+    id_cotizacion?: string;
     
     // @ManyToOne(() => COTIZACION, cotizacion => cotizacion.vistas)
     // @JoinColumn({ name: "ID_COTIZACION" })

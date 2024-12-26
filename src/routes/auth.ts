@@ -137,6 +137,55 @@ router.post("/login", async function (req, res, next) {
   }
 });
 
+router.post("/login-recident", async function (req, res, next) {
+  try {
+    let usuario;
+    let recidente;
+    usuario = await AppDataSource.getRepository(USER).findOne({
+      where: {
+        correo: req.body.user,
+      },
+    });
+     
+    let token;
+    if (req.query.type === "RECIDENTE") {
+      recidente = await AppDataSource.getRepository(RECIDENTE).findOne({
+        where: {
+          id_usuario: usuario!.id,
+          rol:true
+        },
+        relations: {
+          usuario: true,
+        },
+      });
+      token = generateJwt(recidente!.usuario?.id!, "RECIDENTE");
+      let pass = await comparePasswords(
+        req.body.pass,
+        recidente!.usuario?.password!
+      );
+      if (!pass) {
+        return res.status(404).send("Datos incorrectos");
+      }
+      res.cookie("jwt", token, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+        maxAge: 24 * 60 * 1000,
+      });
+
+      return res.json({
+        recidente: recidente,
+        token: token,
+        nombre:
+          recidente!.usuario?.nombres + " " + recidente!.usuario?.apellidos,
+        rol: "RECIDENTE",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
 router.post("/register-recidential", async function (req, res, _next) {
   let pass = await hashPassword(req.body.pass);
   try {
