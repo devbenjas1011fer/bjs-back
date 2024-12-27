@@ -12,11 +12,11 @@ import { PDFDocument } from "pdf-lib";
 import PERFIL from "../db/entity/perfil.entity";
 import { createFolio } from "../utils/folio";
 import FOLIO_COTIZACION from "../db/entity/folio_coTizacion.entity";
-import PRODUCTO_PERFIL from "../db/entity/producto_perfil.entity";
 import { generateJwtURLSHARE } from "../utils/jwt";
 import VISTAS_COTIZACION from "../db/entity/vistas_cotizacion";
 import { IsNull, Not } from "typeorm";
 import OperacionCotizacion from "../db/entity/operacion_cotizacion.entity";
+import CotizacionBorrador from "../db/entity/cotizacion_borrador.entity";
 const router = Router();
 
 router.get(
@@ -138,7 +138,7 @@ router.put(
             queryRunner.manager.save(newOp);
           } else {
             await queryRunner.manager.update(PRODUCTO_COTIZACION, item.id, {
-              precioU: item.precioU,
+              precio: item.precioU,
               cantidad: item.cantidad,
               importe: item.precioU * item.cantidad,
             });
@@ -209,17 +209,17 @@ router.post(
         estado: req.body.estado,
         id_proyecto: req.body.id_proyecto,
         id_servicio_operacion: req.body.id_servicio,
-        folio: folioC,
+        folio_: folioC,
         id_folio: newFolio.id,
-        enviado: req.body.estado === "ENVIADO" ? new Date : undefined,
-      });
-      cot = await queryRunner.manager.save(COTIZACION, cot);
+        enviado: new Date(),
+      }); 
+       cot = await queryRunner.manager.save(COTIZACION, cot);
       if (req.body.materials) {
         for (const item of req.body.materials) {
           const newProdCot = await queryRunner.manager.create(
             PRODUCTO_COTIZACION,
             {
-              precioU: item.precioU,
+              precio: item.precio,
               cantidad: item.cantidad,
               importe: item.precioU * item.cantidad,
               id_cotizacion: cot.id,
@@ -251,7 +251,33 @@ router.post(
       }
       // await queryRunner.manager.update(COTIZACION,{id:cot.id}, cot);
       await queryRunner.commitTransaction();
-      res.json(cot.id);
+      res.json(cot);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      console.log(err);
+      _next(err);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+);
+router.post(
+  "/borrador",
+  async function (req: Request, res: Response, _next: NextFunction) {
+    const connection = AppDataSource;
+    const queryRunner = connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const cot = queryRunner.manager.create(CotizacionBorrador, {
+        comment: req.body.comment.toString(),
+        materials: req.body.materials.toString(),
+        operaciones: req.body.operaciones.toString(),
+        id_proyecto: req.body.id_proyecto,
+        id_servicio_operacion: req.body.id_servicio,
+      });
+      await queryRunner.commitTransaction();
+      res.json(cot);
     } catch (err) {
       await queryRunner.rollbackTransaction();
       console.log(err);
@@ -352,37 +378,36 @@ router.post(
   }
 );
 
-router.post(
-  "/add-material",
-  async function (req: Request, res: Response, _next: NextFunction) {
-    try {
-      const producto = await AppDataSource.getRepository(
-        PRODUCTO_PERFIL
-      ).findOne({
-        where: {
-          id: req.body.id,
-        },
-      });
-      const importe =
-        parseInt(req.body.cantidad) * parseInt(producto!.precio?.toString()!);
-      const mat = await AppDataSource.getRepository(PRODUCTO_COTIZACION).create(
-        {
-          cantidad: req.body.cantidad,
-          importe: importe,
-          id_cotizacion: req.query.id?.toString(),
-          id_producto: req.body.id,
-          precioU: producto?.precio,
-          alta: new Date(),
-        }
-      );
-      await AppDataSource.getRepository(PRODUCTO_COTIZACION).save(mat);
-      res.json(mat);
-    } catch (err) {
-      console.log(err);
-      _next;
-    }
-  }
-);
+// router.post(
+//   "/add-material",
+//   async function (req: Request, res: Response, _next: NextFunction) {
+//     try {
+//       const producto = await AppDataSource.getRepository(
+//         PRODUCTO_PERFIL
+//       ).findOne({
+//         where: {
+//           id: req.body.id,
+//         },
+//       });
+//       const importe =
+//         parseInt(req.body.cantidad) * parseInt(producto!.precio?.toString()!);
+//       // const mat = await AppDataSource.getRepository(PRODUCTO_COTIZACION).create(
+//       //   {
+//       //     cantidad: req.body.cantidad,
+//       //     importe: importe,
+//       //     id_cotizacion: req.query.id?.toString(),
+//       //     precio: producto?.precio,
+//       //     alta: new Date(),
+//       //   }
+//       // );
+//       await AppDataSource.getRepository(PRODUCTO_COTIZACION).save(mat);
+//       // res.json(mat);
+//     } catch (err) {
+//       console.log(err);
+//       _next;
+//     }
+//   }
+// );
 router.get(
   "/increment-material",
   async function (req: Request, res: Response, _next: NextFunction) {
@@ -794,14 +819,14 @@ router.get(
             involucrados: { recidente: true },
           },
           materials: { producto: true },
-
+          operaciones: true,
           servicioOperacion: {
             servicios: true,
           },
         },
       });
       let cotizacionForm = {
-        folio: cotizacion!.folio?.toString(),
+        folio_: cotizacion!.folio_?.toString(),
         alta: cotizacion?.alta,
         baja: cotizacion?.baja,
         comment: JSON.parse(cotizacion!.comment!),
@@ -814,6 +839,7 @@ router.get(
         id_servicio: cotizacion?.servicioOperacion?.servicios!.id,
         servicioOperacion: cotizacion?.servicioOperacion,
         materials: cotizacion?.materials,
+        operaciones: cotizacion?.operaciones,
         proyecto: cotizacion?.proyecto,
         enviado: cotizacion?.enviado,
       };
