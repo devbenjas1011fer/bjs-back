@@ -60,7 +60,7 @@ export default class COTIZACION {
   @JoinColumn({ name: "ID_FOLIO" })
   folio?: FOLIO_COTIZACION;
 
-  @CreateDateColumn({ name: "ENVIADO", nullable: true })
+  @CreateDateColumn({ name: "ENVIADO", nullable: true, default:null})
   enviado?: Date;
 
   @CreateDateColumn({ name: "ALTA" })

@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import SERVICIOS from "./services.entity";
 import COTIZACION from "./cotizacion.entity";
+import CotizacionBorrador from "./cotizacion_borrador.entity";
 
 @Entity("OPERACIONES")
 export default class Operaciones {
@@ -22,6 +23,9 @@ export default class Operaciones {
     
     @OneToMany(() => COTIZACION, (cotizacion) => cotizacion.servicioOperacion)
     cotizaciones?: COTIZACION[];
+
+    @OneToMany(() => CotizacionBorrador, (cotizacion) => cotizacion.servicioOperacion)
+    cotizacionesBorrador?: CotizacionBorrador[];
 
     @Column({name:"BAJA", nullable:true})
     baja?: Date;

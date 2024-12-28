@@ -121,34 +121,35 @@ router.put(
         id_proyecto: req.body.id_proyecto,
         id_servicio_operacion: req.body.id_servicio,
       });
-      if (req.body.materials) {
+      if (req.body.materials.length) {
         for (const item of req.body.materials) {
-          if (item.id == null) {
+          if (item.nueva == true) {
+            let importe = item.precio * item.cantidad;
             const newOp = await queryRunner.manager.create(
-              OperacionCotizacion,
+              PRODUCTO_COTIZACION,
               {
+                precio: item.precioU,
                 cantidad: item.cantidad,
-                descripcion: item.descripcion,
-                horas: item.horas,
-                precio_hora: item.precio_hora,
-                importe: item.precio_hora * item.horas * item.cantidad,
-                descuento: item.descuento,
+                importe: importe,
+                id_cotizacion: req.body.id,
+                id_producto: item.id_tipo_producto,
               }
             );
-            queryRunner.manager.save(newOp);
+            await queryRunner.manager.save(newOp);
           } else {
+            let importe = item.precioU * item.cantidad;
             await queryRunner.manager.update(PRODUCTO_COTIZACION, item.id, {
               precio: item.precioU,
               cantidad: item.cantidad,
-              importe: item.precioU * item.cantidad,
+              importe: importe,
             });
           }
         }
       }
 
-      if (req.body.operacion) {
+      if (req.body.operacion.length) {
         for (const item of req.body.operacion) {
-          if (item.id == null) {
+          if (item.nueva == true) {
             const newOp = await queryRunner.manager.create(
               OperacionCotizacion,
               {
@@ -158,9 +159,10 @@ router.put(
                 precio_hora: item.precio_hora,
                 importe: item.precio_hora * item.horas * item.cantidad,
                 descuento: item.descuento,
+                id_cotizacion: req.body.id,
               }
             );
-            queryRunner.manager.save(newOp);
+            await queryRunner.manager.save(newOp);
           } else {
             await queryRunner.manager.update(OperacionCotizacion, item.id, {
               cantidad: item.cantidad,
@@ -212,8 +214,8 @@ router.post(
         folio_: folioC,
         id_folio: newFolio.id,
         enviado: new Date(),
-      }); 
-       cot = await queryRunner.manager.save(COTIZACION, cot);
+      });
+      cot = await queryRunner.manager.save(COTIZACION, cot);
       if (req.body.materials) {
         for (const item of req.body.materials) {
           const newProdCot = await queryRunner.manager.create(
@@ -269,13 +271,27 @@ router.post(
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+      let newFolio; 
+      let folioC = await createFolio(req.user?.perfil!);
+      newFolio = await queryRunner.manager
+        .getRepository(FOLIO_COTIZACION)
+        .create({
+          // id_cotizacion:cot.id,
+          id_perfil: req.user?.perfil,
+          folio: folioC,
+        });
+      newFolio = await queryRunner.manager.save(FOLIO_COTIZACION, newFolio);
       const cot = queryRunner.manager.create(CotizacionBorrador, {
-        comment: req.body.comment.toString(),
+        comment: req.body.comment,
         materials: req.body.materials.toString(),
-        operaciones: req.body.operaciones.toString(),
+        operaciones: req.body.operacion.toString(),
         id_proyecto: req.body.id_proyecto,
         id_servicio_operacion: req.body.id_servicio,
+        folio_: folioC,
       });
+      await AppDataSource.getRepository(CotizacionBorrador).save(
+        cot
+      );
       await queryRunner.commitTransaction();
       res.json(cot);
     } catch (err) {
@@ -795,7 +811,7 @@ router.get(
     try {
       const cotizacion = await AppDataSource.getRepository(
         COTIZACION
-      ).findOneOrFail({
+      ).findOne({
         where: [
           {
             proyecto: {
