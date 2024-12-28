@@ -12,6 +12,7 @@ import PRODUCTO_COTIZACION from "./producto_cotizacion.entity";
 import FOLIO_COTIZACION from "./folio_coTizacion.entity";
 import Operaciones from "./operaciones.entity";
 import OperacionCotizacion from "./operacion_cotizacion.entity";
+import CotizacionCancelada from "./folio_coTizaciones_canceladas.entity";
 @Entity("COTIZACION")
 export default class COTIZACION {
   @PrimaryGeneratedColumn("uuid", { name: "ID" })
@@ -60,8 +61,14 @@ export default class COTIZACION {
   @JoinColumn({ name: "ID_FOLIO" })
   folio?: FOLIO_COTIZACION;
 
-  @CreateDateColumn({ name: "ENVIADO", nullable: true, default:null})
+  @CreateDateColumn({ name: "ENVIADO", nullable: true, default: null })
   enviado?: Date;
+
+  @CreateDateColumn({ name: "ACEPTADO", nullable: true, default: null })
+  aceptado?: Date; 
+
+  @OneToMany(() => CotizacionCancelada, (pc) => pc.cotizacion)
+  cancelacion?: CotizacionCancelada;
 
   @CreateDateColumn({ name: "ALTA" })
   alta?: Date;

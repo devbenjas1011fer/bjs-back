@@ -15,7 +15,6 @@ export default class CotizacionBorrador {
     @Column({ name: "OPERACIONES", nullable:true })
     operaciones?: string; 
 
-
     @Column({ name: "ID_SERVICIO_OPERACION" })
     id_servicio_operacion?: string;
   
@@ -27,6 +26,10 @@ export default class CotizacionBorrador {
   
     @Column({ name: "FOLIO" })
     folio_?: string;
+
+    @Column({ name: "ID_FOLIO", })
+    id_folio?: string;
+  
   
     @Column({ name: "ID_PROYECTO" })
     id_proyecto?: string;

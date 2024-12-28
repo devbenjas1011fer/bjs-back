@@ -26,28 +26,43 @@ router.get(
       let where = "involucrados.id_perfil = :idPerfil";
 
       switch (req.query.type) {
-        case "send":
+        case "sent":
           // where += ' AND EXISTS (SELECT 1 FROM "C##TST_BS"."VISTAS_COTIZACION" WHERE "C##TST_BS"."VISTAS_COTIZACION".ID_COTIZACION = cotizacion.id)';
+          where += " AND cotizacion.ENVIADO IS NOT NULL";
+          break;
+        case "accepted":
+          where += " AND cotizacion.ACEPTADO IS NOT NULL";
           break;
         case "recibed":
           where += " ";
           break;
-        case "saved":
-          where += " ";
-          break;
-        case "drafts":
-          where += " ";
-          break;
         case "cancelled":
-          where += " ";
-          break;
-        case "rejected":
-          where += " ";
+          where += "  ";
           break;
         default:
           break;
       }
+      if (req.query.type == "draft") {
+        const drafts = await AppDataSource.getRepository(
+          CotizacionBorrador
+        ).find({
+          relations: {
+            proyecto: { involucrados: true },
+          },
+        });
 
+        if (drafts.length > 0) {
+          for (let i = 0; i < drafts.length; i++) {
+            // Convertir el string JSON a un arreglo
+            const materiales = JSON.parse(drafts[i].materials || "[]"); // Asegurarte que no sea null
+            const operaciones = JSON.parse(drafts[i].operaciones || "[]");
+            drafts[i].materials = materiales;
+            drafts[i].operaciones = operaciones;
+            drafts[i].comment = JSON.parse(drafts[i].comment || "[]");
+          }
+        }
+        return res.json(drafts);
+      }
       const cotizaciones = await AppDataSource.getRepository(COTIZACION)
         .createQueryBuilder("cotizacion")
         .leftJoinAndSelect("cotizacion.proyecto", "proyecto")
@@ -58,12 +73,17 @@ router.get(
         .leftJoinAndSelect("materials.producto", "producto")
         .leftJoinAndSelect("cotizacion.servicioOperacion", "servicio")
         .leftJoinAndSelect("servicio.servicios", "servicios")
+        .innerJoin(
+          "cotizacion.cancelacion", // Relación con la tabla de cancelaciones
+          "cotizaciones_canceladas",
+          "cotizaciones_canceladas.id_cotizacion = cotizacion.id"
+        )
         .where(where)
         .setParameters({ idPerfil: req.user?.perfil })
         .orderBy("cotizacion.alta", "DESC")
         .getMany();
-
-      const parsedCotizaciones = cotizaciones.map((cotizacion) => {
+      let parsedCotizaciones;
+      parsedCotizaciones = cotizaciones.map((cotizacion) => {
         if (cotizacion.comment !== null && cotizacion.comment !== undefined) {
           try {
             cotizacion.comment = JSON.parse(cotizacion.comment);
@@ -271,7 +291,7 @@ router.post(
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      let newFolio; 
+      let newFolio;
       let folioC = await createFolio(req.user?.perfil!);
       newFolio = await queryRunner.manager
         .getRepository(FOLIO_COTIZACION)
@@ -281,18 +301,79 @@ router.post(
           folio: folioC,
         });
       newFolio = await queryRunner.manager.save(FOLIO_COTIZACION, newFolio);
-      const cot = queryRunner.manager.create(CotizacionBorrador, {
+      let cot;
+      cot = queryRunner.manager.create(CotizacionBorrador, {
         comment: req.body.comment,
-        materials: req.body.materials.toString(),
-        operaciones: req.body.operacion.toString(),
+        materials: JSON.stringify(req.body.materials),
+        operaciones: JSON.stringify(req.body.operacion),
         id_proyecto: req.body.id_proyecto,
         id_servicio_operacion: req.body.id_servicio,
         folio_: folioC,
       });
-      await AppDataSource.getRepository(CotizacionBorrador).save(
-        cot
-      );
+      cot = await AppDataSource.getRepository(CotizacionBorrador).save(cot);
       await queryRunner.commitTransaction();
+      res.json(cot);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      console.log(err);
+      _next(err);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+);
+router.put(
+  "/borrador",
+  async function (req: Request, res: Response, _next: NextFunction) {
+    const connection = AppDataSource;
+    const queryRunner = connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const cot = await queryRunner.manager.update(
+        CotizacionBorrador,
+        req.body.id,
+        {
+          comment: req.body.comment,
+          materials: JSON.stringify(req.body.materials),
+          operaciones: JSON.stringify(req.body.operacion),
+          id_proyecto: req.body.id_proyecto,
+          id_servicio_operacion: req.body.id_servicio,
+        }
+      );
+
+      await queryRunner.commitTransaction();
+      res.json(cot);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      console.log(err);
+      _next(err);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+);
+router.get(
+  "/borrador/:id",
+  async function (req: Request, res: Response, _next: NextFunction) {
+    const connection = AppDataSource;
+    const queryRunner = connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const cot = await queryRunner.manager
+        .getRepository(CotizacionBorrador)
+        .findOne({
+          where: {
+            id: req.params.id.toString(),
+          },
+          relations: {
+            proyecto: { involucrados: true },
+          },
+        });
+      cot!.materials = JSON.parse(cot?.materials!);
+      cot!.operaciones = JSON.parse(cot?.operaciones!);
+      cot!.comment = JSON.parse(cot?.comment!);
       res.json(cot);
     } catch (err) {
       await queryRunner.rollbackTransaction();
@@ -394,36 +475,6 @@ router.post(
   }
 );
 
-// router.post(
-//   "/add-material",
-//   async function (req: Request, res: Response, _next: NextFunction) {
-//     try {
-//       const producto = await AppDataSource.getRepository(
-//         PRODUCTO_PERFIL
-//       ).findOne({
-//         where: {
-//           id: req.body.id,
-//         },
-//       });
-//       const importe =
-//         parseInt(req.body.cantidad) * parseInt(producto!.precio?.toString()!);
-//       // const mat = await AppDataSource.getRepository(PRODUCTO_COTIZACION).create(
-//       //   {
-//       //     cantidad: req.body.cantidad,
-//       //     importe: importe,
-//       //     id_cotizacion: req.query.id?.toString(),
-//       //     precio: producto?.precio,
-//       //     alta: new Date(),
-//       //   }
-//       // );
-//       await AppDataSource.getRepository(PRODUCTO_COTIZACION).save(mat);
-//       // res.json(mat);
-//     } catch (err) {
-//       console.log(err);
-//       _next;
-//     }
-//   }
-// );
 router.get(
   "/increment-material",
   async function (req: Request, res: Response, _next: NextFunction) {
@@ -809,9 +860,7 @@ router.get(
   "/:id",
   async function (req: Request, res: Response, _next: NextFunction) {
     try {
-      const cotizacion = await AppDataSource.getRepository(
-        COTIZACION
-      ).findOne({
+      const cotizacion = await AppDataSource.getRepository(COTIZACION).findOne({
         where: [
           {
             proyecto: {
