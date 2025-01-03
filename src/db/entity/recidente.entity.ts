@@ -1,6 +1,7 @@
-import {PrimaryGeneratedColumn, CreateDateColumn, Entity, ManyToOne, Column, JoinColumn } from "typeorm";   
+import {PrimaryGeneratedColumn, CreateDateColumn, Entity, ManyToOne, Column, JoinColumn, OneToMany } from "typeorm";   
 import USER from "./user.entity";
 import ROL from "./rol.entity";
+import ServicioExpress from "./service-express.entiy";
 @Entity("RECIDENTE")
 export default class RECIDENTE {
     @PrimaryGeneratedColumn("uuid",{name:"ID"})
@@ -19,6 +20,9 @@ export default class RECIDENTE {
     
     @Column({name:"ID_ROL", nullable:true})
     id_rol?: string;
+   
+    @OneToMany(() => ServicioExpress, (servicioExpress) => servicioExpress.creado)
+    recidents?: ServicioExpress; 
     
     @CreateDateColumn({name:"ALTA"})
     alta?: Date;

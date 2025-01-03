@@ -11,7 +11,7 @@ export default class VISTAS_COTIZACION {
     @JoinColumn({ name: "ID_COTIZACION" })
     cotizacion?: COTIZACION;
     
-    @Column({name:"ID_COTIZACION", nullable:true})
+    @Column({name:"ID_COTIZACION", })
     id_cotizacion?: string;
     
     // @ManyToOne(() => COTIZACION, cotizacion => cotizacion.vistas)

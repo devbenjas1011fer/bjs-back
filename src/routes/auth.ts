@@ -139,7 +139,7 @@ router.post("/login", async function (req, res, next) {
 
 router.post("/login-recident", async function (req, res, next) {
   try {
-    let usuario;
+    let  usuario;
     let recidente;
     usuario = await AppDataSource.getRepository(USER).findOne({
       where: {

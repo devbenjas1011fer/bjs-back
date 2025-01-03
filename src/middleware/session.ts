@@ -48,7 +48,7 @@ export const authenticateToken = async (req: Request, _res: Response, next: Next
         req.user = {
             id: req.user!.id,
             name: user!.nombres! ,
-            perfil: recidente.id!,
+            recidente: recidente.id!,
             token: req.user?.token!,
             roles: ["RECIDENTE"],
             idRol:recidente.id_rol!,

@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 import SERVICIOS from "./services.entity";
 import COTIZACION from "./cotizacion.entity";
 import CotizacionBorrador from "./cotizacion_borrador.entity";
+import ServicioExpress from "./service-express.entiy";
 
 @Entity("OPERACIONES")
 export default class Operaciones {
@@ -23,6 +24,9 @@ export default class Operaciones {
     
     @OneToMany(() => COTIZACION, (cotizacion) => cotizacion.servicioOperacion)
     cotizaciones?: COTIZACION[];
+   
+  @OneToMany(() => ServicioExpress, (servicioExpress) => servicioExpress.servicioOperacion)
+  serviciosExpress?: ServicioExpress[]; 
 
     @OneToMany(() => CotizacionBorrador, (cotizacion) => cotizacion.servicioOperacion)
     cotizacionesBorrador?: CotizacionBorrador[];

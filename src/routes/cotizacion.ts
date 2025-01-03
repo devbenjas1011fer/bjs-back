@@ -18,92 +18,98 @@ import { IsNull, Not } from "typeorm";
 import OperacionCotizacion from "../db/entity/operacion_cotizacion.entity";
 import CotizacionBorrador from "../db/entity/cotizacion_borrador.entity";
 const router = Router();
+router.get("/", async function (req: Request, res: Response, next: NextFunction) {
+  try {
+    let where = "involucrados.id_perfil = :idPerfil";
+    const type = req.query.type;
 
-router.get(
-  "/",
-  async function (req: Request, res: Response, _next: NextFunction) {
-    try {
-      let where = "involucrados.id_perfil = :idPerfil";
-
-      switch (req.query.type) {
-        case "sent":
-          // where += ' AND EXISTS (SELECT 1 FROM "C##TST_BS"."VISTAS_COTIZACION" WHERE "C##TST_BS"."VISTAS_COTIZACION".ID_COTIZACION = cotizacion.id)';
-          where += " AND cotizacion.ENVIADO IS NOT NULL";
-          break;
-        case "accepted":
-          where += " AND cotizacion.ACEPTADO IS NOT NULL";
-          break;
-        case "recibed":
-          where += " ";
-          break;
-        case "cancelled":
-          where += "  ";
-          break;
-        default:
-          break;
-      }
-      if (req.query.type == "draft") {
-        const drafts = await AppDataSource.getRepository(
-          CotizacionBorrador
-        ).find({
-          relations: {
-            proyecto: { involucrados: true },
-          },
-        });
-
-        if (drafts.length > 0) {
-          for (let i = 0; i < drafts.length; i++) {
-            // Convertir el string JSON a un arreglo
-            const materiales = JSON.parse(drafts[i].materials || "[]"); // Asegurarte que no sea null
-            const operaciones = JSON.parse(drafts[i].operaciones || "[]");
-            drafts[i].materials = materiales;
-            drafts[i].operaciones = operaciones;
-            drafts[i].comment = JSON.parse(drafts[i].comment || "[]");
-          }
-        }
-        return res.json(drafts);
-      }
-      const cotizaciones = await AppDataSource.getRepository(COTIZACION)
-        .createQueryBuilder("cotizacion")
-        .leftJoinAndSelect("cotizacion.proyecto", "proyecto")
-        .leftJoinAndSelect("proyecto.involucrados", "involucrados")
-        .leftJoinAndSelect("involucrados.perfil", "perfil")
-        .leftJoinAndSelect("involucrados.recidente", "recidente")
-        .leftJoinAndSelect("cotizacion.materials", "materials")
-        .leftJoinAndSelect("materials.producto", "producto")
-        .leftJoinAndSelect("cotizacion.servicioOperacion", "servicio")
-        .leftJoinAndSelect("servicio.servicios", "servicios")
-        .innerJoin(
-          "cotizacion.cancelacion", // Relación con la tabla de cancelaciones
-          "cotizaciones_canceladas",
-          "cotizaciones_canceladas.id_cotizacion = cotizacion.id"
-        )
-        .where(where)
-        .setParameters({ idPerfil: req.user?.perfil })
-        .orderBy("cotizacion.alta", "DESC")
-        .getMany();
-      let parsedCotizaciones;
-      parsedCotizaciones = cotizaciones.map((cotizacion) => {
-        if (cotizacion.comment !== null && cotizacion.comment !== undefined) {
-          try {
-            cotizacion.comment = JSON.parse(cotizacion.comment);
-          } catch (error) {
-            console.log(
-              `Error parsing comment for cotizacion ID ${cotizacion.id}:`,
-              error
-            );
-          }
-        }
-        return cotizacion;
+    // Lógica específica para el tipo "draft"
+    if (type === "draft") {
+      const drafts = await AppDataSource.getRepository(CotizacionBorrador).find({
+        relations: {
+          proyecto: { involucrados: true },
+        },
       });
 
-      res.json(parsedCotizaciones);
-    } catch (err) {
-      console.log(err);
-      _next(err);
+      drafts.forEach((draft) => {
+        try {
+          // Convertir campos JSON almacenados como strings
+          draft.materials = JSON.parse(draft.materials || "[]");
+          draft.operaciones = JSON.parse(draft.operaciones || "[]");
+          draft.comment = JSON.parse(draft.comment || "[]");
+        } catch (error) {
+          console.log(`Error parsing fields for draft ID ${draft.id}:`, error);
+        }
+      });
+
+      return res.json(drafts);
     }
+
+    // Construcción dinámica del WHERE según el tipo
+    switch (type) {
+      case "sent":
+        where += " AND cotizacion.ENVIADO IS NOT NULL";
+        break;
+      case "accepted":
+        where += " AND cotizacion.ACEPTADO IS NOT NULL";
+        break;
+      case "cancelled":
+        // El INNER JOIN se agrega solo en este caso más adelante
+        break;
+       default:
+        // No se aplica filtro adicional
+        break;
+    }
+
+    // Construcción de la consulta base
+    const queryBuilder = AppDataSource.getRepository(COTIZACION)
+      .createQueryBuilder("cotizacion")
+      .leftJoinAndSelect("cotizacion.proyecto", "proyecto")
+      .leftJoinAndSelect("proyecto.involucrados", "involucrados")
+      .leftJoinAndSelect("involucrados.perfil", "perfil")
+      .leftJoinAndSelect("involucrados.recidente", "recidente")
+      .leftJoinAndSelect("cotizacion.materials", "materials")
+      .leftJoinAndSelect("materials.producto", "producto")
+      .leftJoinAndSelect("cotizacion.servicioOperacion", "servicio")
+      .leftJoinAndSelect("servicio.servicios", "servicios");
+
+    // Agrega el INNER JOIN solo si el tipo es "cancelled"
+    if (type === "cancelled") {
+      queryBuilder.innerJoin(
+        "cotizacion.cancelacion",
+        "cotizaciones_canceladas",
+        "cotizaciones_canceladas.id_cotizacion = cotizacion.id"
+      );
+    }
+
+    // Aplica el WHERE y ejecuta la consulta
+    const cotizaciones = await queryBuilder
+      .where(where)
+      .setParameters({ idPerfil: req.user?.perfil })
+      .orderBy("cotizacion.alta", "DESC")
+      .getMany();
+
+    // Parseo de comentarios en cotizaciones
+    cotizaciones.forEach((cotizacion) => {
+      try {
+        if (cotizacion.comment) {
+          cotizacion.comment = JSON.parse(cotizacion.comment);
+        }
+      } catch (error) {
+        console.log(
+          `Error parsing comment for cotizacion ID ${cotizacion.id}:`,
+          error
+        );
+      }
+    });
+
+    return res.json(cotizaciones);
+  } catch (err) {
+    console.error(err);
+    next(err);
   }
-);
+});
+
 
 router.get(
   "/projects",
@@ -283,6 +289,162 @@ router.post(
     }
   }
 );
+
+router.post(
+  "/share-url/",
+  async (req: Request, res: Response, _next: NextFunction) => {
+    const connection = AppDataSource;
+    const queryRunner = connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const { idCotizacion } = req.query;
+      const { time, value, cotizacion } = req.body;
+      let timeJWK;
+      let token;
+      let tipo;
+      let url = "http://127.0.0.1:8080/#/quote-inquiry/";
+      //=========================================================
+
+      let cot: COTIZACION;
+      let newFolio;
+      let folioC = await createFolio(req.user?.perfil!);
+      newFolio = await queryRunner.manager
+        .getRepository(FOLIO_COTIZACION)
+        .create({
+          // id_cotizacion:cot.id,
+          id_perfil: req.user?.perfil,
+          folio: folioC,
+        });
+      newFolio = await queryRunner.manager.save(FOLIO_COTIZACION, newFolio);
+      cot = queryRunner.manager.create(COTIZACION, {
+        comment: cotizacion.comment.toString(),
+        estado: "COMPARTIDO-URL",
+        id_proyecto: cotizacion.id_proyecto,
+        id_servicio_operacion: cotizacion.id_servicio,
+        folio_: folioC,
+        id_folio: newFolio.id,
+        enviado: new Date(),
+      });
+      cot = await queryRunner.manager.save(COTIZACION, cot);
+      if (cotizacion.materials) {
+        for (const item of cotizacion.materials) {
+          const newProdCot = await queryRunner.manager.create(
+            PRODUCTO_COTIZACION,
+            {
+              precio: item.precio,
+              cantidad: item.cantidad,
+              importe: item.precioU * item.cantidad,
+              id_cotizacion: cot.id,
+              id_producto: item.id,
+            }
+          );
+          console.log(newProdCot);
+          await queryRunner.manager.save(PRODUCTO_COTIZACION, newProdCot);
+        }
+      }
+
+      if (cotizacion.operacion) {
+        for (const item of cotizacion.operacion) {
+          const newProdCot = await queryRunner.manager.create(
+            OperacionCotizacion,
+            {
+              cantidad: item.cantidad,
+              descripcion: item.descripcion,
+              horas: item.horas,
+              precio_hora: item.precio_hora,
+              importe: item.precio_hora * item.horas * item.cantidad,
+              id_cotizacion: cot.id,
+              descuento: item.descuento,
+            }
+          );
+          console.log(newProdCot);
+          await queryRunner.manager.save(OperacionCotizacion, newProdCot);
+        }
+      }
+      //=========================================================
+      const newView = await queryRunner.manager
+        .getRepository(VISTAS_COTIZACION)
+        .create({
+          id_cotizacion: cot.id,
+          limite: value,
+          tipo: tipo,
+          vistas: 0,
+          alta: new Date(),
+        });
+      switch (time) {
+        case "minutos":
+          timeJWK = `${value}m`;
+          tipo = "m";
+          token = generateJwtURLSHARE(
+            req.user?.id!,
+            "share_url",
+            cotizacion.id,
+            timeJWK,
+            newView.id!
+          );
+          url = url + token;
+          newView.data = token;
+          break;
+        case "horas":
+          timeJWK = `${value}h`;
+          tipo = "h";
+          token = generateJwtURLSHARE(
+            req.user?.id!,
+            "share_url",
+            cotizacion.id,
+            timeJWK,
+            newView.id!
+          );
+          newView.data = token;
+          break;
+        case "dias":
+          timeJWK = `${value}d`;
+          tipo = "d";
+          token = generateJwtURLSHARE(
+            req.user?.id!,
+            "share_url",
+            cotizacion.id,
+            timeJWK,
+            newView.id!
+          );
+          newView.data = token;
+          break;
+        case "views":
+          tipo = "v";
+          token = generateJwtURLSHARE(
+            req.user?.id!,
+            "share_url",
+            cotizacion.id,
+            "",
+            newView.id!
+          );
+          newView.data = token;
+          break;
+        default:
+          break;
+      }
+      newView.tipo = tipo;
+      await queryRunner.manager.getRepository(VISTAS_COTIZACION).save(newView);
+      const views = await queryRunner.manager
+        .getRepository(VISTAS_COTIZACION)
+        .find({
+          where: {
+            id_cotizacion: idCotizacion?.toString(),
+          },
+        });
+      await queryRunner.commitTransaction();
+      res.json(views);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      console.log(err);
+      _next(err);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+);
+
 router.post(
   "/borrador",
   async function (req: Request, res: Response, _next: NextFunction) {
@@ -648,89 +810,6 @@ router.post("/generate-pdf/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/share-url/", async (req: Request, res: Response) => {
-  try {
-    const { idCotizacion } = req.query;
-    const { time, value } = req.body;
-    let timeJWK;
-    let token;
-    let tipo;
-    let url = "http://127.0.0.1:8080/#/quote-inquiry/";
-    let cotizacion = req.query.idCotizacion?.toString();
-    const newView = await AppDataSource.getRepository(VISTAS_COTIZACION).create(
-      {
-        id_cotizacion: idCotizacion?.toString(),
-        limite: value,
-        tipo: tipo,
-        vistas: 0,
-        alta: new Date(),
-      }
-    );
-    switch (time) {
-      case "minutos":
-        timeJWK = `${value}m`;
-        tipo = "m";
-        token = generateJwtURLSHARE(
-          req.user?.id!,
-          "share_url",
-          cotizacion!,
-          timeJWK,
-          newView.id!
-        );
-        url = url + token;
-        newView.data = token;
-        break;
-      case "horas":
-        timeJWK = `${value}h`;
-        tipo = "h";
-        token = generateJwtURLSHARE(
-          req.user?.id!,
-          "share_url",
-          cotizacion!,
-          timeJWK,
-          newView.id!
-        );
-        newView.data = token;
-        break;
-      case "dias":
-        timeJWK = `${value}d`;
-        tipo = "d";
-        token = generateJwtURLSHARE(
-          req.user?.id!,
-          "share_url",
-          cotizacion!,
-          timeJWK,
-          newView.id!
-        );
-        newView.data = token;
-        break;
-      case "views":
-        tipo = "v";
-        token = generateJwtURLSHARE(
-          req.user?.id!,
-          "share_url",
-          cotizacion!,
-          "",
-          newView.id!
-        );
-        newView.data = token;
-        break;
-      default:
-        break;
-    }
-    newView.tipo = tipo;
-    await AppDataSource.getRepository(VISTAS_COTIZACION).save(newView);
-    const views = await AppDataSource.getRepository(VISTAS_COTIZACION).find({
-      where: {
-        id_cotizacion: idCotizacion?.toString(),
-      },
-    });
-    res.json(views);
-  } catch (error) {
-    res.status(500).send("Error al crear URL para compartir");
-  }
-});
-
 router.get("/share-url", async (req: Request, res: Response) => {
   try {
     const { idCotizacion, tipo, link } = req.query;
@@ -759,99 +838,53 @@ router.get(
   "/recidente",
   async function (req: Request, res: Response, _next: NextFunction) {
     try {
-      let whereCondition: any = {};
-
-      switch (req.query.type) {
-        case "creator":
-          whereCondition = {
-            proyecto: {
-              involucrados: {
-                id_perfil: req.user?.perfil,
-              },
-            },
-            vistas: {
-              id: IsNull(),
-            },
-          };
-          break;
+      let where = "involucrados.id_recidente = :idRecidente";
+      const type = req.query.type;
+   
+      // Construcción dinámica del WHERE según el tipo
+      switch (type) { 
         case "received":
-          whereCondition = {
-            proyecto: {
-              involucrados: {
-                recidente: { id_usuario: req.user?.id },
-              },
-            },
-            // vistas: {
-            //     id: IsNull()
-            // }
-          };
-          break;
-        case "shared-with-me":
-          whereCondition = {
-            proyecto: {
-              involucrados: {
-                recidente: { id_usuario: req.user?.id },
-              },
-            },
-            vistas: {
-              id: Not(IsNull()),
-            },
-          };
-          break;
-        case "completed":
-          whereCondition = {
-            proyecto: {
-              involucrados: {
-                recidente: { id_usuario: req.user?.id },
-              },
-            },
-            estado: "COMPLETADO",
-          };
-          break;
-        case "cancelled":
-          whereCondition = {
-            proyecto: {
-              involucrados: {
-                recidente: { id_usuario: req.user?.id },
-              },
-            },
-            estado: "CANCELADO",
-          };
-          break;
+          where += ` AND cotizacion.ENVIADO IS NOT NULL AND recidente.ID='${req.user?.recidente}'`; 
         default:
-          throw new Error("Tipo de consulta no válido");
+          // No se aplica filtro adicional
+          break;
       }
-
-      const cotizacion = await AppDataSource.getRepository(COTIZACION).find({
-        where: whereCondition,
-        relations: {
-          proyecto: {
-            involucrados: { perfil: true, recidente: true },
-          },
-          materials: { producto: true },
-          servicioOperacion: { servicios: true },
-          // vistas:true
-        },
-        order: {
-          alta: "DESC",
-        },
-      });
-      const parsedCotizaciones = cotizacion.map((cotizacion) => {
-        if (cotizacion.comment !== null && cotizacion.comment !== undefined) {
-          try {
+  
+      // Construcción de la consulta base
+      const queryBuilder = AppDataSource.getRepository(COTIZACION)
+        .createQueryBuilder("cotizacion")
+        .leftJoinAndSelect("cotizacion.proyecto", "proyecto")
+        .leftJoinAndSelect("proyecto.involucrados", "involucrados")
+        .leftJoinAndSelect("involucrados.perfil", "perfil")
+        .leftJoinAndSelect("involucrados.recidente", "recidente")
+        .leftJoinAndSelect("cotizacion.materials", "materials")
+        .leftJoinAndSelect("materials.producto", "producto")
+        .leftJoinAndSelect("cotizacion.servicioOperacion", "servicio")
+        .leftJoinAndSelect("servicio.servicios", "servicios");
+   
+      const cotizaciones = await queryBuilder
+        .where(where) 
+        .orderBy("cotizacion.alta", "DESC")
+        .setParameters({ idRecidente: req.user?.recidente })
+        .getMany();
+  
+      // Parseo de comentarios en cotizaciones
+      cotizaciones.forEach((cotizacion) => {
+        try {
+          if (cotizacion.comment) {
             cotizacion.comment = JSON.parse(cotizacion.comment);
-          } catch (error) {
-            console.log(
-              `Error parsing comment for cotizacion ID ${cotizacion.id}:`,
-              error
-            );
           }
+        } catch (error) {
+          console.log(
+            `Error parsing comment for cotizacion ID ${cotizacion.id}:`,
+            error
+          );
         }
-        return cotizacion;
       });
-      res.json(parsedCotizaciones);
+  
+      return res.json(cotizaciones);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       _next(err);
     }
   }
