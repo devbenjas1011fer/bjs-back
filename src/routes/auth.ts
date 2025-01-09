@@ -186,6 +186,49 @@ router.post("/login-recident", async function (req, res, next) {
     next(err);
   }
 });
+
+router.post("/login-profesionista", async function (req, res, next) {
+  try { 
+    let perfil; 
+    perfil = await AppDataSource.getRepository(PERFIL).findOne({
+      where: {
+        usuario: {
+          correo: req.body.user,
+        },
+      },
+      relations: {
+        usuario: true,
+        rol: true,
+      },
+    });
+    let token; 
+      token = generateJwt(perfil!.usuario?.id!, perfil?.rol?.descripcion!);
+      let pass = await comparePasswords(
+        req.body.pass,
+        perfil!.usuario?.password!
+      );
+      if (!pass) {
+        return res.status(404).send("Datos incorrectos");
+      }
+      res.cookie("jwt", token, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+        maxAge: 24 * 60 * 1000,
+      });
+
+      return res.json({
+        perfil: perfil,
+        token: token,
+        nombre: perfil!.usuario?.nombres + " " + perfil!.usuario?.apellidos,
+        rol: perfil?.rol?.descripcion,
+        rolId: perfil?.rol?.id,
+      }); 
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
 router.post("/register-recidential", async function (req, res, _next) {
   let pass = await hashPassword(req.body.pass);
   try {

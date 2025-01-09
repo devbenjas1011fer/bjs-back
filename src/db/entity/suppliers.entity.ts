@@ -1,7 +1,7 @@
 import {PrimaryGeneratedColumn, Column, CreateDateColumn, Entity, ManyToOne, JoinColumn } from "typeorm";  
 import PERFIL from "./perfil.entity"; 
-@Entity("PROVEEDOR")
-export default class PROVEEDOR {
+@Entity("PROVEEDORES")
+export default class Proveedores {
     @PrimaryGeneratedColumn("uuid",{name:"ID"})
     id?: string;
    

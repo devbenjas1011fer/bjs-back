@@ -1,11 +1,11 @@
 import { Router } from 'express';    
 import { AppDataSource } from '../db/dataService';
 import { Request, Response, NextFunction } from 'express'; 
-import PROVEEDOR from '../db/entity/suppliers.entity';
+import Proveedores from '../db/entity/suppliers.entity';
 const router = Router();
 router.post("/create", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
-        const proveedor = await AppDataSource.getRepository(PROVEEDOR).create({
+        const proveedor = await AppDataSource.getRepository(Proveedores).create({
             nombre:req.body.nombre+' '+req.body.apellidos, 
             direccion:req.body.direccion,
             numero:req.body.telefono,
@@ -13,7 +13,7 @@ router.post("/create", async function (req:Request,res:Response, _next:NextFunct
             id_perfil:req.user!.perfil!,
             alta:new Date()
         })
-        await AppDataSource.getRepository(PROVEEDOR).save(proveedor); 
+        await AppDataSource.getRepository(Proveedores).save(proveedor); 
         res.json([]) 
         
     }catch(err){
@@ -23,7 +23,7 @@ router.post("/create", async function (req:Request,res:Response, _next:NextFunct
 })  
 router.get("/", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
-        const customer = await AppDataSource.getRepository(PROVEEDOR).find({
+        const customer = await AppDataSource.getRepository(Proveedores).find({
             where:{ 
                 id_perfil:req.user?.perfil
             }
@@ -37,7 +37,7 @@ router.get("/", async function (req:Request,res:Response, _next:NextFunction){
 })  
 router.get("/details/", async function (req:Request,res:Response, _next:NextFunction){
     try{ 
-        const customer = await AppDataSource.getRepository(PROVEEDOR).findOne({
+        const customer = await AppDataSource.getRepository(Proveedores).findOne({
             where:{
                 id_perfil:req.query.idCliente?.toString()
             }

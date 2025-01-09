@@ -2,8 +2,8 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import USER from "./entity/user.entity";
 import PERFIL from "./entity/perfil.entity";
-import ROL from "./entity/rol.entity"; 
-import * as dotenv from 'dotenv'; 
+import ROL from "./entity/rol.entity";
+import * as dotenv from "dotenv";
 import SECCION from "./entity/seccion_menu.entity";
 import ROL_SECCION from "./entity/rol_seccion_menu.entity";
 import ACCESO from "./entity/acceso.entity";
@@ -24,23 +24,49 @@ import VISTAS_COTIZACION from "./entity/vistas_cotizacion";
 import CotizacionBorrador from "./entity/cotizacion_borrador.entity";
 import CotizacionCancelada from "./entity/folio_coTizaciones_canceladas.entity";
 import ServicioExpress from "./entity/service-express.entiy";
+import Pendientes from "./entity/pendientes";
+import Proveedores from "./entity/suppliers.entity";
 
 dotenv.config();
 
 export const AppDataSource = new DataSource({
-    type: "oracle",
-    host: process.env.DB_HOST || "localhost",
-    port: parseInt(process.env.DB_PORT!) || 1521,
-    username: process.env.DB_USERNAME || "C##TST_BS",
-    password: process.env.DB_PASSWORD || "4rt1cul05",
-    sid: process.env.DB_SID || "ORCL",
-    schema: "C##TST_BS",
-    logging: true,
-    connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${process.env.DB_HOST})(PORT=${process.env.DB_PORT}))(CONNECT_DATA=(SID=${process.env.DB_SID})))`,
-    entities: [
-        ACCESO, ROL, USER, RECIDENTE, PERFIL, SECCION, ROL_SECCION, SERVICIOS, Operaciones, OperacionCotizacion, SERVICIOS_PERFIL, RECIDENTE, CLIENTE, PROYECTO, PRODUCTO, TIPO_PRODUCTO, PRODUCTO_PERFIL, FOLIO_COTIZACION, CotizacionBorrador, COTIZACION, PRODUCTO_COTIZACION, VISTAS_COTIZACION, ServicioExpress, CotizacionCancelada,
-    ],
-    synchronize:true,
-    useUTC: true,
+  type: "oracle",
+  host: process.env.DB_HOST || "localhost",
+  port: parseInt(process.env.DB_PORT!) || 1521,
+  username: process.env.DB_USERNAME || "C##TST_BS",
+  password: process.env.DB_PASSWORD || "4rt1cul05",
+  sid: process.env.DB_SID || "ORCL",
+  schema: "C##TST_BS",
+  logging: true,
+  connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${process.env.DB_HOST})(PORT=${process.env.DB_PORT}))(CONNECT_DATA=(SID=${process.env.DB_SID})))`,
+  entities: [
+    ACCESO,
+    ROL,
+    USER,
+    RECIDENTE,
+    PERFIL,
+    SECCION,
+    ROL_SECCION,
+    SERVICIOS,
+    Operaciones,
+    OperacionCotizacion,
+    SERVICIOS_PERFIL,
+    RECIDENTE,
+    CLIENTE,
+    PROYECTO,
+    PRODUCTO,
+    TIPO_PRODUCTO,
+    PRODUCTO_PERFIL,
+    FOLIO_COTIZACION,
+    CotizacionBorrador,
+    COTIZACION,
+    PRODUCTO_COTIZACION,
+    VISTAS_COTIZACION,
+    ServicioExpress,
+    CotizacionCancelada,
+    Pendientes,
+    Proveedores,
+  ],
+  synchronize: true,
+  useUTC: true,
 });
- 

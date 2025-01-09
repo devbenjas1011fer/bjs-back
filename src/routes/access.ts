@@ -31,10 +31,7 @@ router.get("/", async function (_req, res, _next) {
 
 router.get("/access-user", async function (req, res, _next) {
   const secciones = await AppDataSource.getRepository(ROL_SECCION).find({
-    where: {
-      seccion: {
-        tipo: "PANTALLA",
-      },
+    where: { 
       idRol: req.user?.idRol,
     },
     relations: {

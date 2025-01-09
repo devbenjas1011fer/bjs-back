@@ -23,6 +23,7 @@ import hire from "./routes/hire";
 import access from "./routes/access";
 import materialsTipos from "./routes/tipos-materiales";
 import configure from "./routes/configuratios";
+import pendings from "./routes/pendientes";
 
 import { handle404 } from "./middleware/error-handler";
 // import { responseHandler } from "./middleware/response-handler";
@@ -57,7 +58,8 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   next();
 });
 const allowedOrigins = [
-  "http://192.168.100.14",
+  "http://192.168.0.143:8080",
+  "http://192.168.100.14:8080",
   "http://localhost:8080",
   "http://127.0.0.1:8080",
   "http://127.0.0.1:8081",
@@ -68,7 +70,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: allowedOrigins,
-    credentials: true,
+    credentials: false,
   })
 );
 
@@ -83,6 +85,7 @@ app.use(authenticateToken);
 app.use("/access", access);
 
 app.use("/customer", customer);
+app.use("/pendings", pendings);
 app.use("/services-types", servicesTypes);
 app.use("/services", services);
 app.use("/tipos-materiales", materialsTipos);
