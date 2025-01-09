@@ -10,10 +10,7 @@ export default class Pendientes {
  
     @ManyToOne(()=>PERFIL)
     @JoinColumn({ name: "ID_PERFIL" })
-    perfil?: PERFIL;  
-
-    @Column({name:"DESCRIPCION"})
-    descripcion?: string; 
+    perfil?: PERFIL;   
 
     @Column({name:"DIRECCION"})
     direccion?: string; 

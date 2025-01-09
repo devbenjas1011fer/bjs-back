@@ -25,11 +25,12 @@ router.post(
   async function (req: Request, res: Response, _next: NextFunction) {
     try {
       const pending = await AppDataSource.getRepository(Pendientes).create({
-        descripcion: req.body.nombre + " " + req.body.apellidos,
-        detalle: req.body.direccion,
+        detalle: req.body.descripcion,
+        id_perfil: req.user?.perfil,
+        direccion: req.body.direccion,
         tipo:req.body.tipo,
         alta:new Date,
-        expiracion: new Date,
+        expiracion:new Date(req.body.expiracion),
          
       });
       await AppDataSource.getRepository(Pendientes).save(pending);
